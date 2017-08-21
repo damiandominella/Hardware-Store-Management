@@ -48,10 +48,6 @@ struct node {
 struct node* new_node(struct article *item);
 struct node* insert(struct node *node, struct article *item, int type);
 struct node* min_value_node(struct node* node);
-struct node* delete_node_id(struct node* root, char *id);
-struct node* delete_node_name(struct node* root, char *name);
-struct node* delete_node_qty(struct node* root, int qty);
-struct node* delete_node_price(struct node* root, float price);
 struct node* search(struct node* root, char *id);
 void print_tree(struct node *root);
 
@@ -65,6 +61,179 @@ void print_data(struct node *root);
 void clear_buffer();
 int get_valid_int(char *field_name);
 float get_valid_float(char *field_name);
+
+
+struct node* delete_qty(struct node *node, int quantity)
+{
+    printf("\nqty: %d", quantity);
+    struct node *temp;
+    if (node == NULL)
+    {
+        printf("\nElement Not Found");
+    }
+    else if (quantity < node->item->quantity)
+    {
+        node->left = delete_qty(node->left, quantity);
+    }
+    else if (quantity > node->item->quantity)
+    {
+        node->right = delete_qty(node->right, quantity);
+    }
+    else
+    {
+        /* Now We can delete this node and replace with either minimum element
+                   in the right sub tree or maximum element in the left subtree*/
+        if (node->right && node->left)
+        {
+            /* Here we will replace with minimum element in the right sub tree */
+            temp = min_value_node(node->right);
+            node->item = temp->item;
+            /* As we replaced it with some other node, we have to delete that node */
+            node->right = delete_qty(node->right, temp->item->quantity);
+        }
+        else
+        {
+            /* If there is only one or zero children then we can directly
+                           remove it from the tree and connect its parent to its child */
+            temp = node;
+            if (node->left == NULL)
+                node = node->right;
+            else if (node->right == NULL)
+                node = node->left;
+            free(temp); /* temp is longer required */
+        }
+    }
+    return node;
+}
+
+struct node* delete_price(struct node *node, float price)
+{
+    printf("\nprice: %.2f", price);
+    struct node *temp;
+    if (node == NULL)
+    {
+        printf("\nElement Not Found");
+    }
+    else if (price < node->item->price)
+    {
+        node->left = delete_price(node->left, price);
+    }
+    else if (price > node->item->price)
+    {
+        node->right = delete_price(node->right, price);
+    }
+    else
+    {
+        /* Now We can delete this node and replace with either minimum element
+                   in the right sub tree or maximum element in the left subtree*/
+        if (node->right && node->left)
+        {
+            /* Here we will replace with minimum element in the right sub tree */
+            temp = min_value_node(node->right);
+            node->item = temp->item;
+            /* As we replaced it with some other node, we have to delete that node */
+            node->right = delete_price(node->right, temp->item->price);
+        }
+        else
+        {
+            /* If there is only one or zero children then we can directly
+                           remove it from the tree and connect its parent to its child */
+            temp = node;
+            if (node->left == NULL)
+                node = node->right;
+            else if (node->right == NULL)
+                node = node->left;
+            free(temp); /* temp is longer required */
+        }
+    }
+    return node;
+}
+
+struct node* delete_id(struct node *node, char *id)
+{
+    printf("\nid: %s", id);
+    struct node *temp;
+    if (node == NULL)
+    {
+        printf("\nElement Not Found");
+    }
+    else if (strcmp(id, node->item->id) < 0)
+    {
+        node->left = delete_id(node->left, id);
+    }
+    else if (strcmp(id, node->item->id) > 0)
+    {
+        node->right = delete_id(node->right, id);
+    }
+    else
+    {
+        /* Now We can delete this node and replace with either minimum element
+                   in the right sub tree or maximum element in the left subtree*/
+        if (node->right && node->left)
+        {
+            /* Here we will replace with minimum element in the right sub tree */
+            temp = min_value_node(node->right);
+            node->item = temp->item;
+            /* As we replaced it with some other node, we have to delete that node */
+            node->right = delete_id(node->right, temp->item->id);
+        }
+        else
+        {
+            /* If there is only one or zero children then we can directly
+                           remove it from the tree and connect its parent to its child */
+            temp = node;
+            if (node->left == NULL)
+                node = node->right;
+            else if (node->right == NULL)
+                node = node->left;
+            free(temp); /* temp is longer required */
+        }
+    }
+    return node;
+}
+
+struct node* delete_name(struct node *node, char *name)
+{
+    printf("\nname: %s", name);
+    struct node *temp;
+    if (node == NULL)
+    {
+        printf("\nElement Not Found");
+    }
+    else if (strcmp(name, node->item->name) < 0)
+    {
+        node->left = delete_name(node->left, name);
+    }
+    else if (strcmp(name, node->item->name) > 0)
+    {
+        node->right = delete_name(node->right, name);
+    }
+    else
+    {
+        /* Now We can delete this node and replace with either minimum element
+                   in the right sub tree or maximum element in the left subtree*/
+        if (node->right && node->left)
+        {
+            /* Here we will replace with minimum element in the right sub tree */
+            temp = min_value_node(node->right);
+            node->item = temp->item;
+            /* As we replaced it with some other node, we have to delete that node */
+            node->right = delete_name(node->right, temp->item->name);
+        }
+        else
+        {
+            /* If there is only one or zero children then we can directly
+                           remove it from the tree and connect its parent to its child */
+            temp = node;
+            if (node->left == NULL)
+                node = node->right;
+            else if (node->right == NULL)
+                node = node->left;
+            free(temp); /* temp is longer required */
+        }
+    }
+    return node;
+}
 
 /* Main function */
 int main()
@@ -200,16 +369,16 @@ int main()
             /* TODO: delete does not work well */
             struct node* node_to_delete = search(root_id, id_to_delete);
             /* TODO: non tira su bene l'articolo da passare ai metodi */
-            print_article(node_to_delete->item);
 
-            root_id = delete_node_id(root_id, node_to_delete->item->id);
-            printf("\n\n");
-            root_name = delete_node_name(root_name, node_to_delete->item->name);
-            printf("\n\n");
-            root_qty = delete_node_qty(root_qty, node_to_delete->item->quantity);
-            printf("\n\n");
-            root_price = delete_node_price(root_price, node_to_delete->item->price);
+            printf("\nID to delete: %s", node_to_delete->item->id);
+            printf("\nName to delete: %s", node_to_delete->item->name);
+            printf("\nQuantity to delete: %d", node_to_delete->item->quantity);
+            printf("\nPrice to delete: %.2f", node_to_delete->item->price);
 
+            root_id = delete_id(root_id, id_to_delete);
+            root_name = delete_name(root_name, node_to_delete->item->name);
+            root_price = delete_price(root_price, node_to_delete->item->price);
+            root_qty = delete_qty(root_qty, node_to_delete->item->quantity);
             break;
 
         default:
@@ -350,259 +519,6 @@ struct node* min_value_node(struct node* node)
     return current;
 }
 
-struct node* delete_node_id(struct node* root, char *id)
-{
-    if (root == NULL) {
-        printf("\nRoot is null");
-        return root;
-    }
-
-    printf("\nID to delete: %s", id);
-    printf("\nProcessing node with id: %s", root->item->id);
-
-    /* If the key to be deleted is smaller than the root's key,
-       then it lies in left subtree */
-    if (strcmp(id, root->item->id) < 0) {
-        printf("\nNode is in the left subtree, calling delete_node with node: ");
-        print_data(root->left);
-        root->left = delete_node_id(root->left, id);
-    }
-    /* If the key to be deleted is greater than the root's key,
-       then it lies in right subtree */
-    else if (strcmp(id, root->item->id) > 0) {
-        printf("\nNode is in the right subtree, calling delete_node with node: ");
-        print_data(root->right);
-        root->right = delete_node_id(root->right, id);
-    }
-    /* If key is same as root's key, then this is the node
-       to be deleted */
-    else
-    {
-        printf("\nNode to delete found, checking childrens...");
-        /* Node with only one child or no child */
-        struct node *temp = (struct node *)malloc(sizeof(struct node));
-        if (root->left == NULL) {
-            printf("\nRoot left == NULL, temp = root->right, free(root)");
-            temp = root->right;
-            free(root);
-            return temp;
-        } else if (root->right == NULL) {
-            printf("\nRoot right == NULL, temp = root->left, free(root)");
-            temp = root->left;
-            free(root);
-            return temp;
-        }
-
-        printf("\nTwo childrens, getting smallest node in right subtree:");
-        /* Node with two children: Get the inorder successor (smallest
-           in the right subtree) */
-        temp = min_value_node(root->right);
-        print_data(temp);
-
-        /* Copy the inorder successor's content to this node */
-        printf("\nCopying temp into root");
-        root->item = temp->item;
-        print_data(root);
-
-        /* Delete the inorder successor */
-        printf("\nCalling delete_node with node: ");
-        print_data(root->right);
-        printf("\nand ID: %s", temp->item->id);
-        root->right = delete_node_id(root->right, temp->item->id);
-
-    }
-
-    return root;
-}
-
-struct node* delete_node_name(struct node* root, char *name)
-{
-    if (root == NULL) {
-        printf("\nRoot is null");
-        return root;
-    }
-
-    printf("\nName to delete: %s", name);
-    printf("\nProcessing node with name: %s", root->item->name);
-
-    /* If the key to be deleted is smaller than the root's key,
-       then it lies in left subtree */
-    if (strcmp(name, root->item->name) < 0) {
-        printf("\nNode is in the left subtree, calling delete_node with node: ");
-        print_data(root->left);
-        root->left = delete_node_name(root->left, name);
-    }
-    /* If the key to be deleted is greater than the root's key,
-       then it lies in right subtree */
-    else if (strcmp(name, root->item->name) > 0) {
-        printf("\nNode is in the right subtree, calling delete_node with node: ");
-        print_data(root->right);
-        root->right = delete_node_name(root->right, name);
-    }
-    /* If key is same as root's key, then this is the node
-       to be deleted */
-    else
-    {
-        printf("\nNode to delete found, checking childrens...");
-        /* Node with only one child or no child */
-       struct node *temp = (struct node *)malloc(sizeof(struct node));
-        if (root->left == NULL) {
-            printf("\nRoot left == NULL, temp = root->right, free(root)");
-            temp = root->right;
-            free(root);
-            return temp;
-        } else if (root->right == NULL) {
-            printf("\nRoot right == NULL, temp = root->left, free(root)");
-            temp = root->left;
-            free(root);
-            return temp;
-        }
-
-        printf("\nTwo childrens, getting smallest node in right subtree:");
-        /* Node with two children: Get the inorder successor (smallest
-           in the right subtree) */
-        temp = min_value_node(root->right);
-        print_data(temp);
-
-        /* Copy the inorder successor's content to this node */
-        printf("\nCopying temp into root");
-        root->item = temp->item;
-        print_data(root);
-
-        /* Delete the inorder successor */
-        printf("\nCalling delete_node with node: ");
-        print_data(root->right);
-        printf("\nand name: %s", temp->item->name);
-        root->right = delete_node_id(root->right, temp->item->name);
-    }
-
-    return root;
-}
-
-struct node* delete_node_qty(struct node* root, int qty)
-{
-    if (root == NULL) {
-        printf("\nRoot is null");
-        return root;
-    }
-
-    printf("\nQty to delete: %d", qty);
-    printf("\nProcessing node with qty: %d", root->item->quantity);
-
-    /* If the key to be deleted is smaller than the root's key,
-       then it lies in left subtree */
-    if (qty < root->item->quantity) {
-        root->left = delete_node_qty(root->left, qty);
-    }
-    /* If the key to be deleted is greater than the root's key,
-       then it lies in right subtree */
-    else if (qty > root->item->quantity) {
-        root->right = delete_node_qty(root->right, qty);
-    }
-    /* If key is same as root's key, then this is the node
-       to be deleted */
-    else
-    {
-        printf("\nNode to delete found, checking childrens...");
-        /* Node with only one child or no child */
-        struct node *temp = (struct node *)malloc(sizeof(struct node));
-        if (root->left == NULL) {
-            printf("\nRoot left == NULL, temp = root->right, free(root)");
-            temp = root->right;
-            free(root);
-            return temp;
-        } else if (root->right == NULL) {
-            printf("\nRoot right == NULL, temp = root->left, free(root)");
-            temp = root->left;
-            free(root);
-            return temp;
-        }
-
-        printf("\nTwo childrens, getting smallest node in right subtree:");
-        /* Node with two children: Get the inorder successor (smallest
-           in the right subtree) */
-        temp = min_value_node(root->right);
-        print_data(temp);
-
-        /* Copy the inorder successor's content to this node */
-        printf("\nCopying temp into root");
-        root->item = temp->item;
-        print_data(root);
-
-        /* Delete the inorder successor */
-        printf("\nCalling delete_node with node: ");
-        print_data(root->right);
-        printf("\nand qty: %d", temp->item->quantity);
-
-        /* Delete the inorder successor */
-        root->right = delete_node_qty(root->right, temp->item->quantity);
-    }
-
-    return root;
-}
-
-struct node* delete_node_price(struct node* root, float price)
-{
-    if (root == NULL) {
-        printf("\nRoot is null");
-        return root;
-    }
-
-    printf("\nPrice to delete: %.2f", price);
-    printf("\nProcessing node with price: %.2f", root->item->price);
-
-    /* If the key to be deleted is smaller than the root's key,
-       then it lies in left subtree */
-    if (price < root->item->price) {
-        root->left = delete_node_price(root->left, price);
-    }
-    /* If the key to be deleted is greater than the root's key,
-       then it lies in right subtree */
-    else if (price > root->item->price) {
-        root->right = delete_node_price(root->right, price);
-    }
-    /* If key is same as root's key, then this is the node
-       to be deleted */
-    else
-    {
-         printf("\nNode to delete found, checking childrens...");
-        /* Node with only one child or no child */
-        struct node *temp = (struct node *)malloc(sizeof(struct node));
-        if (root->left == NULL) {
-            printf("\nRoot left == NULL, temp = root->right, free(root)");
-            temp = root->right;
-            free(root);
-            return temp;
-        } else if (root->right == NULL) {
-            printf("\nRoot right == NULL, temp = root->left, free(root)");
-            temp = root->left;
-            free(root);
-            return temp;
-        }
-
-        printf("\nTwo childrens, getting smallest node in right subtree:");
-        /* Node with two children: Get the inorder successor (smallest
-           in the right subtree) */
-        temp = min_value_node(root->right);
-        print_data(temp);
-
-        /* Copy the inorder successor's content to this node */
-        printf("\nCopying temp into root");
-        root->item = temp->item;
-        print_data(root);
-
-        /* Delete the inorder successor */
-        printf("\nCalling delete_node with node: ");
-        print_data(root->right);
-        printf("\nand price: %.2f", temp->item->price);
-
-        /* Delete the inorder successor */
-        root->right = delete_node_price(root->right, temp->item->price);
-    }
-
-    return root;
-}
-
 /* The function acquires the root node and the id of the searched element,
    then search a node that has the given id. It returns the node if the element exists, NULL otherwise */
 struct node* search(struct node* root, char *id)
@@ -652,11 +568,6 @@ struct node* load_data(const char file[], int type)
         while (fscanf(f, "%s %s %f %d", name, id, &price, &quantity) != EOF) {
             struct article *product = new_article(id, name, price, quantity);
             root = insert(root, product, type);
-            /*if (root == NULL) {
-                root = insert(root, product, type);
-            } else {
-                insert(root, product, type);
-            }*/
         }
         fclose(f);
     }
@@ -666,16 +577,11 @@ struct node* load_data(const char file[], int type)
 
 void print_data(struct node *root)
 {
-    if (root != NULL) {
-        printf("\n--------------------------------------------------------------\n");
-        printf("%-15s%-20s%-15s%-15s\n", "ID", "Name", "Quantity", "Price");
-        printf("--------------------------------------------------------------\n");
-        print_tree(root);
-        printf("--------------------------------------------------------------\n");
-    } else {
-        printf("\n\nNode is null");
-    }
-
+    printf("\n--------------------------------------------------------------\n");
+    printf("%-15s%-20s%-15s%-15s\n", "ID", "Name", "Quantity", "Price");
+    printf("--------------------------------------------------------------\n");
+    print_tree(root);
+    printf("--------------------------------------------------------------\n");
 }
 
 void clear_buffer()
