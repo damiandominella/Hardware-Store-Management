@@ -44,196 +44,23 @@ struct node {
 
 /* Declaration of functions */
 
-/* Binary tree functions */
-struct node* new_node(struct article *item);
-struct node* insert(struct node *node, struct article *item, int type);
-struct node* min_value_node(struct node* node);
-struct node* search(struct node* root, char *id);
-void print_tree(struct node *root);
-
 /* Article functions */
 struct article* new_article(char *id, char *name, float price, int quantity);
 void print_article(struct article *item);
 
-/* General functions */
+/* Binary tree functions */
 struct node* load_data(const char file[], int type);
+struct node* new_node(struct article *item);
+struct node* insert(struct node *node, struct article *item, int type);
+int delete(struct node **root, struct article *item, int type);
+struct node* search(struct node* root, char *id);
+void print_tree(struct node *root);
+
+/* General functions */
 void print_data(struct node *root);
 void clear_buffer();
 int get_valid_int(char *field_name);
 float get_valid_float(char *field_name);
-
-
-struct node* delete_qty(struct node *node, int quantity)
-{
-    printf("\nqty: %d", quantity);
-    struct node *temp;
-    if (node == NULL)
-    {
-        printf("\nElement Not Found");
-    }
-    else if (quantity < node->item->quantity)
-    {
-        node->left = delete_qty(node->left, quantity);
-    }
-    else if (quantity > node->item->quantity)
-    {
-        node->right = delete_qty(node->right, quantity);
-    }
-    else
-    {
-        /* Now We can delete this node and replace with either minimum element
-                   in the right sub tree or maximum element in the left subtree*/
-        if (node->right && node->left)
-        {
-            /* Here we will replace with minimum element in the right sub tree */
-            temp = min_value_node(node->right);
-            node->item = temp->item;
-            /* As we replaced it with some other node, we have to delete that node */
-            node->right = delete_qty(node->right, temp->item->quantity);
-        }
-        else
-        {
-            /* If there is only one or zero children then we can directly
-                           remove it from the tree and connect its parent to its child */
-            temp = node;
-            if (node->left == NULL)
-                node = node->right;
-            else if (node->right == NULL)
-                node = node->left;
-            free(temp); /* temp is longer required */
-        }
-    }
-    return node;
-}
-
-struct node* delete_price(struct node *node, float price)
-{
-    printf("\nprice: %.2f", price);
-    struct node *temp;
-    if (node == NULL)
-    {
-        printf("\nElement Not Found");
-    }
-    else if (price < node->item->price)
-    {
-        node->left = delete_price(node->left, price);
-    }
-    else if (price > node->item->price)
-    {
-        node->right = delete_price(node->right, price);
-    }
-    else
-    {
-        /* Now We can delete this node and replace with either minimum element
-                   in the right sub tree or maximum element in the left subtree*/
-        if (node->right && node->left)
-        {
-            /* Here we will replace with minimum element in the right sub tree */
-            temp = min_value_node(node->right);
-            node->item = temp->item;
-            /* As we replaced it with some other node, we have to delete that node */
-            node->right = delete_price(node->right, temp->item->price);
-        }
-        else
-        {
-            /* If there is only one or zero children then we can directly
-                           remove it from the tree and connect its parent to its child */
-            temp = node;
-            if (node->left == NULL)
-                node = node->right;
-            else if (node->right == NULL)
-                node = node->left;
-            free(temp); /* temp is longer required */
-        }
-    }
-    return node;
-}
-
-struct node* delete_id(struct node *node, char *id)
-{
-    printf("\nid: %s", id);
-    struct node *temp;
-    if (node == NULL)
-    {
-        printf("\nElement Not Found");
-    }
-    else if (strcmp(id, node->item->id) < 0)
-    {
-        node->left = delete_id(node->left, id);
-    }
-    else if (strcmp(id, node->item->id) > 0)
-    {
-        node->right = delete_id(node->right, id);
-    }
-    else
-    {
-        /* Now We can delete this node and replace with either minimum element
-                   in the right sub tree or maximum element in the left subtree*/
-        if (node->right && node->left)
-        {
-            /* Here we will replace with minimum element in the right sub tree */
-            temp = min_value_node(node->right);
-            node->item = temp->item;
-            /* As we replaced it with some other node, we have to delete that node */
-            node->right = delete_id(node->right, temp->item->id);
-        }
-        else
-        {
-            /* If there is only one or zero children then we can directly
-                           remove it from the tree and connect its parent to its child */
-            temp = node;
-            if (node->left == NULL)
-                node = node->right;
-            else if (node->right == NULL)
-                node = node->left;
-            free(temp); /* temp is longer required */
-        }
-    }
-    return node;
-}
-
-struct node* delete_name(struct node *node, char *name)
-{
-    printf("\nname: %s", name);
-    struct node *temp;
-    if (node == NULL)
-    {
-        printf("\nElement Not Found");
-    }
-    else if (strcmp(name, node->item->name) < 0)
-    {
-        node->left = delete_name(node->left, name);
-    }
-    else if (strcmp(name, node->item->name) > 0)
-    {
-        node->right = delete_name(node->right, name);
-    }
-    else
-    {
-        /* Now We can delete this node and replace with either minimum element
-                   in the right sub tree or maximum element in the left subtree*/
-        if (node->right && node->left)
-        {
-            /* Here we will replace with minimum element in the right sub tree */
-            temp = min_value_node(node->right);
-            node->item = temp->item;
-            /* As we replaced it with some other node, we have to delete that node */
-            node->right = delete_name(node->right, temp->item->name);
-        }
-        else
-        {
-            /* If there is only one or zero children then we can directly
-                           remove it from the tree and connect its parent to its child */
-            temp = node;
-            if (node->left == NULL)
-                node = node->right;
-            else if (node->right == NULL)
-                node = node->left;
-            free(temp); /* temp is longer required */
-        }
-    }
-    return node;
-}
 
 /* Main function */
 int main()
@@ -365,20 +192,13 @@ int main()
                 }
             }
 
-            /* Deleting node from every binary tree */
-            /* TODO: delete does not work well */
             struct node* node_to_delete = search(root_id, id_to_delete);
-            /* TODO: non tira su bene l'articolo da passare ai metodi */
 
-            printf("\nID to delete: %s", node_to_delete->item->id);
-            printf("\nName to delete: %s", node_to_delete->item->name);
-            printf("\nQuantity to delete: %d", node_to_delete->item->quantity);
-            printf("\nPrice to delete: %.2f", node_to_delete->item->price);
-
-            root_id = delete_id(root_id, id_to_delete);
-            root_name = delete_name(root_name, node_to_delete->item->name);
-            root_price = delete_price(root_price, node_to_delete->item->price);
-            root_qty = delete_qty(root_qty, node_to_delete->item->quantity);
+            /* TODO: segmentation fault */
+            delete(&root_id, node_to_delete->item, TYPE_ID);
+            delete(&root_name, node_to_delete->item, TYPE_ID);
+            delete(&root_qty, node_to_delete->item, TYPE_ID);
+            delete(&root_price, node_to_delete->item, TYPE_ID);
             break;
 
         default:
@@ -434,6 +254,31 @@ void print_article(struct article *item)
 }
 
 /* Binary tree functions */
+
+struct node* load_data(const char file[], int type)
+{
+    /* Initializing tree */
+    struct node *root = NULL;
+
+    /* Opening input file */
+    FILE* f = fopen(file, "r");
+
+    /* Opening file error */
+    if (f != NULL) {
+        /* Loading data from file */
+        char id[64], name[64];
+        float price;
+        int quantity;
+
+        while (fscanf(f, "%s %s %f %d", name, id, &price, &quantity) != EOF) {
+            struct article *product = new_article(id, name, price, quantity);
+            root = insert(root, product, type);
+        }
+        fclose(f);
+    }
+
+    return root;
+}
 
 /* The function acquires the item and allocates a new node with the given data and NULL left and
    right pointers. Then, the node is returned. */
@@ -505,18 +350,134 @@ struct node* insert(struct node *node, struct article *item, int type)
     return node;
 }
 
-/* The function acquires a node, then return the node with minimum
-   key value, that will be it or it's left child. */
-struct node* min_value_node(struct node* node)
+int delete(struct node **root, struct article *item, int type)
 {
-    struct node* current = node;
+    int deleted = 0;
 
-    /* Loop down to find the leftmost leaf */
-    while (current->left != NULL) {
-        current = current->left;
+    if (root != NULL && item != NULL) {
+        struct node *temp = NULL, *father = NULL, *replacer = NULL;
+
+        switch (type) {
+        case TYPE_ID:
+            for (temp = father = *root; ((temp != NULL) && (strcmp(temp->item->id, item->id) != 0));
+                    father = temp, temp = (strcmp(item->id, temp->item->id) < 0) ? temp->left : temp->right);
+            break;
+        case TYPE_NAME:
+            for (temp = father = *root; ((temp != NULL) && (strcmp(temp->item->name, item->name) != 0));
+                    father = temp, temp = (strcmp(item->name, temp->item->name) < 0) ? temp->left : temp->right);
+            break;
+        case TYPE_QTY:
+            for (temp = father = *root; ((temp != NULL) && temp->item->quantity != item->quantity);
+                    father = temp, temp = item->quantity < temp->item->quantity ? temp->left : temp->right);
+            break;
+        case TYPE_PRICE:
+            for (temp = father = *root; ((temp != NULL) && temp->item->price != item->price);
+                    father = temp, temp = item->price < temp->item->price ? temp->left : temp->right);
+            break;
+        default:
+            break;
+        }
+
+        if (temp == NULL) {
+            deleted = 0;
+        } else {
+            deleted = 1;
+
+            if (temp->left == NULL) {
+                if (temp == *root) {
+                    *root = temp->right;
+                } else {
+                    switch (type) {
+                    case TYPE_ID:
+                        if (strcmp(item->id, father->item->id) < 0) {
+                            father->left = temp->right;
+                        } else {
+                            father->right = temp->right;
+                        }
+                        break;
+                    case TYPE_NAME:
+                        if (strcmp(item->name, father->item->name) < 0) {
+                            father->left = temp->right;
+                        } else {
+                            father->right = temp->right;
+                        }
+                        break;
+                    case TYPE_QTY:
+                        if (item->quantity < father->item->quantity) {
+                            father->left = temp->right;
+                        } else {
+                            father->right = temp->right;
+                        }
+                        break;
+                    case TYPE_PRICE:
+                        if (item->price < father->item->price) {
+                            father->left = temp->right;
+                        } else {
+                            father->right = temp->right;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            } else {
+                if (temp->right == NULL) {
+                    if (temp == *root) {
+                        *root = temp->left;
+                    } else {
+                        switch (type) {
+                        case TYPE_ID:
+                            if (strcmp(item->id, father->item->id) < 0) {
+                                father->left = temp->left;
+                            } else {
+                                father->right = temp->left;
+                            }
+                            break;
+                        case TYPE_NAME:
+                            if (strcmp(item->name, father->item->name) < 0) {
+                                father->left = temp->left;
+                            } else {
+                                father->right = temp->left;
+                            }
+                            break;
+                        case TYPE_QTY:
+                            if (item->quantity < father->item->quantity) {
+                                father->left = temp->left;
+                            } else {
+                                father->right = temp->left;
+                            }
+                            break;
+                        case TYPE_PRICE:
+                            if (item->price < father->item->price) {
+                                father->left = temp->left;
+                            } else {
+                                father->right = temp->left;
+                            }
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                } else {
+                    replacer = temp;
+
+                    for (father = replacer, temp = replacer->left;
+                            (temp->right != NULL);
+                            father = temp, temp = temp->right);
+
+                    replacer->item = temp->item;
+                    if (father == replacer) {
+                        father->left = temp->left;
+                    } else {
+                        father->right = temp->left;
+                    }
+                }
+            }
+            free(temp);
+        }
     }
 
-    return current;
+    return deleted;
 }
 
 /* The function acquires the root node and the id of the searched element,
@@ -550,31 +511,6 @@ void print_tree(struct node *root)
 
 /* General functions */
 
-struct node* load_data(const char file[], int type)
-{
-    /* Initializing tree */
-    struct node *root = NULL;
-
-    /* Opening input file */
-    FILE* f = fopen(file, "r");
-
-    /* Opening file error */
-    if (f != NULL) {
-        /* Loading data from file */
-        char id[64], name[64];
-        float price;
-        int quantity;
-
-        while (fscanf(f, "%s %s %f %d", name, id, &price, &quantity) != EOF) {
-            struct article *product = new_article(id, name, price, quantity);
-            root = insert(root, product, type);
-        }
-        fclose(f);
-    }
-
-    return root;
-}
-
 void print_data(struct node *root)
 {
     printf("\n--------------------------------------------------------------\n");
@@ -606,7 +542,6 @@ int get_valid_int(char *field_name)
     return value;
 }
 
-/* TODO: non funziona bene per i tipi float */
 float get_valid_float(char *field_name)
 {
     int is_valid = 0;
