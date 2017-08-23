@@ -52,7 +52,8 @@ void print_article(struct article *item);
 struct node* load_data(const char file[], int type);
 struct node* new_node(struct article *item);
 struct node* insert(struct node *node, struct article *item, int type);
-int delete(struct node **root, struct article *item, int type);
+struct node* min_value_node(struct node* node);
+struct node* delete(struct node *root, struct article *item, int type);
 struct node* search(struct node* root, char *id);
 void print_tree(struct node *root);
 
@@ -79,7 +80,7 @@ int main()
         return 1;
     }
 
-    int choiche;
+    int choice;
 
     /* Menu options */
     do {
@@ -90,10 +91,10 @@ int main()
         printf("3) Delete item\n");
         printf("0) Exit\n\n");
         printf("Choice: ");
-        scanf("%d", &choiche);
+        choice = get_valid_int("Choice");
         printf("\n");
 
-        switch (choiche) {
+        switch (choice) {
 
         case 1:
             /* Before displaying data, user must select a sort key */
@@ -168,10 +169,35 @@ int main()
 
             /* Creating new article and inserting it every binary tree */
             struct article *product = new_article(id, name, price, quantity);
+            printf("\nBefore\n");
+            print_tree(root_id);
             root_id = insert(root_id, product, TYPE_ID);
+            printf("\nAfter\n");
+            print_tree(root_id);
+
+            printf("\n\n\n\n\n");
+
+            printf("\nBefore\n");
+            print_tree(root_name);
             root_name = insert(root_name, product, TYPE_NAME);
+            printf("\nAfter\n");
+            print_tree(root_name);
+
+            printf("\n\n\n\n\n");
+
+            printf("\nBefore\n");
+            print_tree(root_qty);
             root_qty = insert(root_qty, product, TYPE_QTY);
+            printf("\nAfter\n");
+            print_tree(root_qty);
+
+            printf("\n\n\n\n\n");
+
+            printf("\nBefore\n");
+            print_tree(root_price);
             root_price = insert(root_price, product, TYPE_PRICE);
+            printf("\nAfter\n");
+            print_tree(root_price);
             break;
 
         case 3:
@@ -194,19 +220,30 @@ int main()
 
             struct node* node_to_delete = search(root_id, id_to_delete);
 
-            /* TODO: segmentation fault */
-            delete(&root_id, node_to_delete->item, TYPE_ID);
-            delete(&root_name, node_to_delete->item, TYPE_ID);
-            delete(&root_qty, node_to_delete->item, TYPE_ID);
-            delete(&root_price, node_to_delete->item, TYPE_ID);
+            printf("\nNode to delete name:");
+            print_article(node_to_delete->item);
+            root_name = delete(root_name, node_to_delete->item, TYPE_NAME);
+
+            printf("\nNode to delete price:");
+            print_article(node_to_delete->item);
+            root_price = delete(root_name, node_to_delete->item, TYPE_PRICE);
+
+            printf("\nNode to delete quantity:");
+            print_article(node_to_delete->item);
+            root_qty = delete(root_name, node_to_delete->item, TYPE_QTY);
+
+            printf("\nNode to delete id:");
+            print_article(node_to_delete->item);
+            root_id = delete(root_id, node_to_delete->item, TYPE_ID);
             break;
 
         default:
+            printf("\nOption: %d) does not exist\n", choice);
             break;
 
         }
 
-    } while (choiche != 0);
+    } while (choice != 0);
 
     free(root_id);
     free(root_name);
@@ -302,44 +339,69 @@ struct node* insert(struct node *node, struct article *item, int type)
 {
     /* If the tree is empty, return a new node */
     if (node == NULL) {
+        printf("\nELEMENT CREATED\n");
         node = new_node(item);
     } else {
         /* If the tree is not empty, recur down it to find the correct node to insert the given item.
            For data comparison between strings, strcmp() is used to get the smaller value */
         switch (type) {
         case TYPE_ID:
+            printf("\nInsert ID:\n");
             if (strcmp(item->id, node->item->id) < 0) {
+                printf("\nInsert to sx");
                 node->left = insert(node->left, item, type);
             }
             else if (strcmp(item->id, node->item->id) > 0) {
+                printf("\nInsert to dx");
                 node->right = insert(node->right, item, type);
+            } else {
+                printf("\nNIENTE");
             }
             break;
 
         case TYPE_NAME:
+            printf("\nInsert Name:\n");
             if (strcmp(item->name, node->item->name) < 0) {
+                printf("\nInsert to sx");
                 node->left = insert(node->left, item, type);
             }
             else if (strcmp(item->name, node->item->name) > 0) {
+                printf("\nInsert to dx");
                 node->right = insert(node->right, item, type);
+            } else {
+                printf("\nNIENTE");
             }
             break;
 
         case TYPE_QTY:
+            printf("\nInsert Qty:\n");
+            printf("\nItem->qty: %d", item->quantity);
+            printf("\nNode->item->qty:%d", node->item->quantity);
             if (item->quantity < node->item->quantity) {
+                printf("\nInsert to sx");
                 node->left = insert(node->left, item, type);
             }
             else if (item->quantity > node->item->quantity) {
+                printf("\nInsert to dx");
                 node->right = insert(node->right, item, type);
+            } else {
+                printf("\nNIENTE");
             }
             break;
 
         case TYPE_PRICE:
+            printf("\nInsert price:\n");
+            printf("\nItem->price: %.2f", item->price);
+            printf("\nNode->item->price:%.2f", node->item->price);
             if (item->price < node->item->price) {
+                printf("\nInsert to sx");
                 node->left = insert(node->left, item, type);
             }
             else if (item->price > node->item->price) {
+                printf("\nInsert to dx");
                 node->right = insert(node->right, item, type);
+            } else {
+                printf("\nNIENTE");
             }
             break;
         default:
@@ -350,134 +412,249 @@ struct node* insert(struct node *node, struct article *item, int type)
     return node;
 }
 
-int delete(struct node **root, struct article *item, int type)
+/* Given a non-empty binary search tree, return the node with minimum
+   key value found in that tree. Note that the entire tree does not
+   need to be searched. */
+struct node* min_value_node(struct node *node)
 {
-    int deleted = 0;
+    struct node* current = node;
 
-    if (root != NULL && item != NULL) {
-        struct node *temp = NULL, *father = NULL, *replacer = NULL;
+    /* loop down to find the leftmost leaf */
+    while (current->left != NULL)
+        current = current->left;
 
-        switch (type) {
-        case TYPE_ID:
-            for (temp = father = *root; ((temp != NULL) && (strcmp(temp->item->id, item->id) != 0));
-                    father = temp, temp = (strcmp(item->id, temp->item->id) < 0) ? temp->left : temp->right);
-            break;
-        case TYPE_NAME:
-            for (temp = father = *root; ((temp != NULL) && (strcmp(temp->item->name, item->name) != 0));
-                    father = temp, temp = (strcmp(item->name, temp->item->name) < 0) ? temp->left : temp->right);
-            break;
-        case TYPE_QTY:
-            for (temp = father = *root; ((temp != NULL) && temp->item->quantity != item->quantity);
-                    father = temp, temp = item->quantity < temp->item->quantity ? temp->left : temp->right);
-            break;
-        case TYPE_PRICE:
-            for (temp = father = *root; ((temp != NULL) && temp->item->price != item->price);
-                    father = temp, temp = item->price < temp->item->price ? temp->left : temp->right);
-            break;
-        default:
-            break;
-        }
+    return current;
+}
 
-        if (temp == NULL) {
-            deleted = 0;
-        } else {
-            deleted = 1;
-
-            if (temp->left == NULL) {
-                if (temp == *root) {
-                    *root = temp->right;
-                } else {
-                    switch (type) {
-                    case TYPE_ID:
-                        if (strcmp(item->id, father->item->id) < 0) {
-                            father->left = temp->right;
-                        } else {
-                            father->right = temp->right;
-                        }
-                        break;
-                    case TYPE_NAME:
-                        if (strcmp(item->name, father->item->name) < 0) {
-                            father->left = temp->right;
-                        } else {
-                            father->right = temp->right;
-                        }
-                        break;
-                    case TYPE_QTY:
-                        if (item->quantity < father->item->quantity) {
-                            father->left = temp->right;
-                        } else {
-                            father->right = temp->right;
-                        }
-                        break;
-                    case TYPE_PRICE:
-                        if (item->price < father->item->price) {
-                            father->left = temp->right;
-                        } else {
-                            father->right = temp->right;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-                }
-            } else {
-                if (temp->right == NULL) {
-                    if (temp == *root) {
-                        *root = temp->left;
-                    } else {
-                        switch (type) {
-                        case TYPE_ID:
-                            if (strcmp(item->id, father->item->id) < 0) {
-                                father->left = temp->left;
-                            } else {
-                                father->right = temp->left;
-                            }
-                            break;
-                        case TYPE_NAME:
-                            if (strcmp(item->name, father->item->name) < 0) {
-                                father->left = temp->left;
-                            } else {
-                                father->right = temp->left;
-                            }
-                            break;
-                        case TYPE_QTY:
-                            if (item->quantity < father->item->quantity) {
-                                father->left = temp->left;
-                            } else {
-                                father->right = temp->left;
-                            }
-                            break;
-                        case TYPE_PRICE:
-                            if (item->price < father->item->price) {
-                                father->left = temp->left;
-                            } else {
-                                father->right = temp->left;
-                            }
-                            break;
-                        default:
-                            break;
-                        }
-                    }
-                } else {
-                    replacer = temp;
-
-                    for (father = replacer, temp = replacer->left;
-                            (temp->right != NULL);
-                            father = temp, temp = temp->right);
-
-                    replacer->item = temp->item;
-                    if (father == replacer) {
-                        father->left = temp->left;
-                    } else {
-                        father->right = temp->left;
-                    }
-                }
-            }
-            free(temp);
-        }
+/* Given a binary search tree and a key, this function deletes the key
+   and returns the new root */
+struct node* delete(struct node *root, struct article *item, int type)
+{
+    printf("\n\n\nDELETE function");
+    // base case
+    if (root == NULL) {
+        printf("\nRoot is null");
+        return root;
     }
 
-    return deleted;
+    switch (type) {
+    case TYPE_ID:
+        printf("\n\n\nDelete by id\n");
+        print_article(item);
+        // If the key to be deleted is smaller than the root's key,
+        // then it lies in left subtree
+        if (strcmp(item->id, root->item->id) < 0) {
+            printf("\nChiamo delete a sx");
+            root->left = delete(root->left, item, type);
+        }
+
+        // If the key to be deleted is greater than the root's key,
+        // then it lies in right subtree
+        else if (strcmp(item->id, root->item->id) > 0) {
+            printf("\nChiamo delete a dx");
+            root->right = delete(root->right, item, type);
+        }
+
+        // if key is same as root's key, then This is the node
+        // to be deleted
+        else
+        {
+            // node with only one child or no child
+            if (root->left == NULL)
+            {
+                printf("\nRoot->left == NULL, elimino NODO");
+                struct node *temp = root->right;
+                free(root);
+                return temp;
+            }
+            else if (root->right == NULL)
+            {
+                printf("\nRoot->right == NULL, elimino NODO");
+                struct node *temp = root->left;
+                free(root);
+                return temp;
+            }
+
+            printf("\n2 figli, vedo cosa fare");
+            printf("\nPrendo figlio piu piccolo a dx\n");
+
+            // node with two children: Get the inorder successor (smallest
+            // in the right subtree)
+            struct node* temp = min_value_node(root->right);
+
+            // Copy the inorder successor's content to this node
+            printf("\nCopio l'elemento appena trovato su root->item\n");
+            root->item = temp->item;
+            print_article(root->item);
+
+            printf("\nElimino partendo da root->right, l'elemento qui sopra\n");
+
+            // Delete the inorder successor
+            root->right = delete(root->right, temp->item, type);
+        }
+        break;
+    case TYPE_NAME:
+        printf("\n\n\nDelete by name\n");
+        print_article(item);
+        // If the key to be deleted is smaller than the root's key,
+        // then it lies in left subtree
+        if (strcmp(item->name, root->item->name) < 0) {
+            printf("\nChiamo delete a sx");
+            root->left = delete(root->left, item, type);
+        }
+
+        // If the key to be deleted is greater than the root's key,
+        // then it lies in right subtree
+        else if (strcmp(item->name, root->item->name) > 0) {
+            printf("\nChiamo delete a dx");
+            root->right = delete(root->right, item, type);
+        }
+
+        // if key is same as root's key, then This is the node
+        // to be deleted
+        else
+        {
+            // node with only one child or no child
+            if (root->left == NULL)
+            {
+                printf("\nRoot->left == NULL, elimino NODO");
+                struct node *temp = root->right;
+                free(root);
+                return temp;
+            }
+            else if (root->right == NULL)
+            {
+                printf("\nRoot->right == NULL, elimino NODO");
+                struct node *temp = root->left;
+                free(root);
+                return temp;
+            }
+
+            printf("\n2 figli, vedo cosa fare");
+            printf("\nPrendo figlio piu piccolo a dx\n");
+            // node with two children: Get the inorder successor (smallest
+            // in the right subtree)
+            struct node* temp = min_value_node(root->right);
+
+            // Copy the inorder successor's content to this node
+            printf("\nCopio l'elemento appena trovato su root->item\n");
+            root->item = temp->item;
+            print_article(root->item);
+
+            printf("\nElimino partendo da root->right, l'elemento qui sopra\n");
+            // Delete the inorder successor
+            root->right = delete(root->right, temp->item, type);
+        }
+        break;
+    case TYPE_PRICE:
+        printf("\n\n\nDelete by price\n");
+        print_article(item);
+        // If the key to be deleted is smaller than the root's key,
+        // then it lies in left subtree
+        if (item->price < root->item->price) {
+            printf("\nChiamo delete a sx");
+            root->left = delete(root->left, item, type);
+        }
+
+        // If the key to be deleted is greater than the root's key,
+        // then it lies in right subtree
+        else if (item->price > root->item->price) {
+            printf("\nChiamo delete a dx");
+            root->right = delete(root->right, item, type);
+        }
+
+        // if key is same as root's key, then This is the node
+        // to be deleted
+        else
+        {
+            // node with only one child or no child
+            if (root->left == NULL)
+            {
+                printf("\nRoot->left == NULL, elimino NODO");
+                struct node *temp = root->right;
+                free(root);
+                return temp;
+            }
+            else if (root->right == NULL)
+            {
+                printf("\nRoot->right == NULL, elimino NODO");
+                struct node *temp = root->left;
+                free(root);
+                return temp;
+            }
+
+            printf("\n2 figli, vedo cosa fare");
+            printf("\nPrendo figlio piu piccolo a dx\n");
+            // node with two children: Get the inorder successor (smallest
+            // in the right subtree)
+            struct node* temp = min_value_node(root->right);
+
+            // Copy the inorder successor's content to this node
+            printf("\nCopio l'elemento appena trovato su root->item\n");
+            root->item = temp->item;
+            print_article(root->item);
+
+            printf("\nElimino partendo da root->right, l'elemento qui sopra\n");
+            // Delete the inorder successor
+            root->right = delete(root->right, temp->item, type);
+        }
+        break;
+    case TYPE_QTY:
+        printf("\n\n\nDelete by price\n");
+        print_article(item);
+        // If the key to be deleted is smaller than the root's key,
+        // then it lies in left subtree
+        if (item->quantity < root->item->quantity) {
+            printf("\nChiamo delete a sx");
+            root->left = delete(root->left, item, type);
+        }
+
+        // If the key to be deleted is greater than the root's key,
+        // then it lies in right subtree
+        else if (item->quantity > root->item->quantity) {
+            printf("\nChiamo delete a dx");
+            root->right = delete(root->right, item, type);
+        }
+
+        // if key is same as root's key, then This is the node
+        // to be deleted
+        else
+        {
+            // node with only one child or no child
+            if (root->left == NULL)
+            {
+                printf("\nRoot->left == NULL, elimino NODO");
+                struct node *temp = root->right;
+                free(root);
+                return temp;
+            }
+            else if (root->right == NULL)
+            {
+                printf("\nRoot->right == NULL, elimino NODO");
+                struct node *temp = root->left;
+                free(root);
+                return temp;
+            }
+
+            printf("\n2 figli, vedo cosa fare");
+            printf("\nPrendo figlio piu piccolo a dx\n");
+            // node with two children: Get the inorder successor (smallest
+            // in the right subtree)
+            struct node* temp = min_value_node(root->right);
+
+            // Copy the inorder successor's content to this node
+            printf("\nCopio l'elemento appena trovato su root->item\n");
+            root->item = temp->item;
+            print_article(root->item);
+
+            printf("\nElimino partendo da root->right, l'elemento qui sopra\n");
+            // Delete the inorder successor
+            root->right = delete(root->right, temp->item, type);
+        }
+        break;
+    }
+
+    return root;
 }
 
 /* The function acquires the root node and the id of the searched element,
