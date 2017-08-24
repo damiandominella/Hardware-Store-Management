@@ -28,6 +28,9 @@
 #define TYPE_NAME 1
 #define TYPE_QTY 2
 #define TYPE_PRICE 3
+#define KYEL   "\x1B[33m" /* yellow color */
+#define KGRN  "\x1B[32m" /* green color */
+#define KDEF  "\x1B[0m" /* default color */
 
 /* Structures declaration */
 struct article {
@@ -46,7 +49,7 @@ struct node {
 
 /* Article functions */
 struct article* new_article(char *id, char *name, float price, int quantity);
-void print_article(struct article *item);
+void print_article(struct article *item, int col_to_highlight);
 
 /* Binary tree functions */
 struct node* load_data(const char file[], int type);
@@ -54,11 +57,12 @@ struct node* new_node(struct article *item);
 struct node* insert(struct node *node, struct article *item, int type);
 struct node* min_value_node(struct node* node);
 struct node* delete(struct node *root, struct article *item, int type);
-struct node* search(struct node* root, char *id);
-void print_tree(struct node *root);
+struct node* search_id(struct node* root, char *id);
+struct node* search_name(struct node* root, char *id);
+void print_tree(struct node *root, struct article *product_to_highlight, int col_to_highlight);
 
 /* General functions */
-void print_data(struct node *root);
+void print_data(struct node *root, struct article *product_to_highlight, int col_to_highlight);
 void clear_buffer();
 int get_valid_int(char *field_name);
 float get_valid_float(char *field_name);
@@ -91,45 +95,55 @@ int main()
         printf("3) Delete item\n");
         printf("0) Exit\n\n");
         printf("Choice: ");
-        choice = get_valid_int("Choice");
+        choice = get_valid_int("Choice"); /* Acquiring a valid integer using get_valid_int() function */
         printf("\n");
 
         switch (choice) {
 
         case 1:
-            /* Before displaying data, user must select a sort key */
-            printf("Display items, ");
-            printf("please choose a sort key:\n");
-            printf("0) ID\n");
-            printf("1) Name\n");
-            printf("2) Quantity\n");
-            printf("3) Price\n\n");
-
+            /* Before displaying data, user must select a sort key, but if the binary tree is empty, this step can be skipped */
             if (root_id == NULL) {
                 printf("--------------------------------------------------------------\n");
-                printf("Data set is empty");
+                printf("\nData set is empty");
                 printf("--------------------------------------------------------------\n");
             } else {
-                int sort;
+                printf("Display items, ");
+                printf("please choose a sort key\n");
+                printf("0) ID\n");
+                printf("1) Name\n");
+                printf("2) Quantity\n");
+                printf("3) Price\n\n");
+
+                int sort_key;
                 printf("Sort key: ");
-                scanf("%d", &sort);
+                do {
+                    sort_key = get_valid_int("Sort key");
+                    if (sort_key < 0 || sort_key > 3) {
+                        printf("Sort key %d) does not exists, try again: ", sort_key);
+                    }
+                } while (sort_key < 0 || sort_key > 3);
 
                 /* Display data of the correct tree based on user's selected sort key */
-                switch (sort) {
+                printf("\nData sorted by: ");
+                switch (sort_key) {
                 case TYPE_ID:
-                    print_data(root_id);
+                    printf("%sID%s", KYEL, KDEF);
+                    print_data(root_id, NULL, TYPE_ID);
                     break;
 
                 case TYPE_NAME:
-                    print_data(root_name);
+                    printf("%sName%s", KYEL, KDEF);
+                    print_data(root_name, NULL, TYPE_NAME);
                     break;
 
                 case TYPE_QTY:
-                    print_data(root_qty);
+                    printf("%sQuantity%s", KYEL, KDEF);
+                    print_data(root_qty, NULL, TYPE_QTY);
                     break;
 
                 case TYPE_PRICE:
-                    print_data(root_price);
+                    printf("%sPrice%s", KYEL, KDEF);
+                    print_data(root_price, NULL, TYPE_PRICE);
                     break;
 
                 default:
@@ -152,16 +166,26 @@ int main()
             int id_exists = 1;
             while (id_exists) {
                 scanf("%s", id);
-                if (search(root_id, id) != NULL) {
+                if (search_id(root_id, id) != NULL) {
                     clear_buffer();
-                    printf("ID already exists, try again: ");
+                    printf("A record with ID: %s already exists, try again: ", id);
                 } else {
                     id_exists = 0;
                 }
             }
 
             printf("Name: ");
-            scanf("%s", name);
+            /* Duplicate name check */
+            int name_exists = 1;
+            while (name_exists) {
+                scanf("%s", name);
+                if (search_name(root_name, name) != NULL) {
+                    clear_buffer();
+                    printf("A record with name: %s already exists, try again: ", name);
+                } else {
+                    name_exists = 0;
+                }
+            }
             printf("Quantity: ");
             quantity = get_valid_int("Quantity");
             printf("Price: ");
@@ -169,40 +193,19 @@ int main()
 
             /* Creating new article and inserting it every binary tree */
             struct article *product = new_article(id, name, price, quantity);
-            printf("\nBefore\n");
-            print_tree(root_id);
+
             root_id = insert(root_id, product, TYPE_ID);
-            printf("\nAfter\n");
-            print_tree(root_id);
-
-            printf("\n\n\n\n\n");
-
-            printf("\nBefore\n");
-            print_tree(root_name);
             root_name = insert(root_name, product, TYPE_NAME);
-            printf("\nAfter\n");
-            print_tree(root_name);
-
-            printf("\n\n\n\n\n");
-
-            printf("\nBefore\n");
-            print_tree(root_qty);
             root_qty = insert(root_qty, product, TYPE_QTY);
-            printf("\nAfter\n");
-            print_tree(root_qty);
-
-            printf("\n\n\n\n\n");
-
-            printf("\nBefore\n");
-            print_tree(root_price);
             root_price = insert(root_price, product, TYPE_PRICE);
-            printf("\nAfter\n");
-            print_tree(root_price);
+
+            printf("\nRecord inserted successfully");
+            print_data(root_id, product, -1);
             break;
 
         case 3:
             printf("Delete item");
-            print_data(root_id);
+            print_data(root_id, NULL, -1);
 
             char id_to_delete[64];
             printf("\nID to delete: ");
@@ -210,7 +213,7 @@ int main()
             int id_not_exists = 1;
             while (id_not_exists) {
                 scanf("%s", id_to_delete);
-                if (search(root_id, id_to_delete) == NULL) {
+                if (search_id(root_id, id_to_delete) == NULL) {
                     clear_buffer();
                     printf("ID does not exist, try again: ");
                 } else {
@@ -218,23 +221,14 @@ int main()
                 }
             }
 
-            struct node* node_to_delete = search(root_id, id_to_delete);
+            struct node* node_to_delete = search_id(root_id, id_to_delete);
 
-            printf("\nNode to delete name:");
-            print_article(node_to_delete->item);
             root_name = delete(root_name, node_to_delete->item, TYPE_NAME);
-
-            printf("\nNode to delete price:");
-            print_article(node_to_delete->item);
-            root_price = delete(root_name, node_to_delete->item, TYPE_PRICE);
-
-            printf("\nNode to delete quantity:");
-            print_article(node_to_delete->item);
-            root_qty = delete(root_name, node_to_delete->item, TYPE_QTY);
-
-            printf("\nNode to delete id:");
-            print_article(node_to_delete->item);
+            root_price = delete(root_price, node_to_delete->item, TYPE_PRICE);
+            root_qty = delete(root_qty, node_to_delete->item, TYPE_QTY);
             root_id = delete(root_id, node_to_delete->item, TYPE_ID);
+
+            printf("\nRecord deleted successfully\n");
             break;
 
         default:
@@ -285,9 +279,41 @@ struct article* new_article(char *id, char *name, float price, int quantity)
 }
 
 /* The function acquires the item and print its data in a formatted way */
-void print_article(struct article *item)
+void print_article(struct article *item, int col_to_highlight)
 {
-    printf("%-15s%-20s%-15d%-15.2f\n", item->id, item->name, item->quantity, item->price);
+    switch (col_to_highlight) {
+    case TYPE_ID:
+        printf("%s%-15s%s", KYEL, item->id, KDEF);
+        printf("%-20s", item->name);
+        printf("%-15d", item->quantity);
+        printf("%-15.2f", item->price);
+        break;
+    case TYPE_NAME:
+        printf("%-15s", item->id);
+        printf("%s%-20s%s", KYEL, item->name, KDEF);
+        printf("%-15d", item->quantity);
+        printf("%-15.2f", item->price);
+        break;
+    case TYPE_QTY:
+        printf("%-15s", item->id);
+        printf("%-20s", item->name);
+        printf("%s%-15d%s",  KYEL, item->quantity, KDEF);
+        printf("%-15.2f", item->price);
+        break;
+    case TYPE_PRICE:
+        printf("%-15s", item->id);
+        printf("%-20s", item->name);
+        printf("%-15d", item->quantity);
+        printf("%s%-15.2f%s",  KYEL, item->price, KDEF);
+        break;
+    default:
+        printf("%-15s", item->id);
+        printf("%-20s", item->name);
+        printf("%-15d", item->quantity);
+        printf("%-15.2f", item->price);
+        break;
+    }
+    printf("\n");
 }
 
 /* Binary tree functions */
@@ -339,69 +365,44 @@ struct node* insert(struct node *node, struct article *item, int type)
 {
     /* If the tree is empty, return a new node */
     if (node == NULL) {
-        printf("\nELEMENT CREATED\n");
         node = new_node(item);
     } else {
         /* If the tree is not empty, recur down it to find the correct node to insert the given item.
            For data comparison between strings, strcmp() is used to get the smaller value */
         switch (type) {
         case TYPE_ID:
-            printf("\nInsert ID:\n");
             if (strcmp(item->id, node->item->id) < 0) {
-                printf("\nInsert to sx");
                 node->left = insert(node->left, item, type);
             }
             else if (strcmp(item->id, node->item->id) > 0) {
-                printf("\nInsert to dx");
                 node->right = insert(node->right, item, type);
-            } else {
-                printf("\nNIENTE");
             }
             break;
 
         case TYPE_NAME:
-            printf("\nInsert Name:\n");
             if (strcmp(item->name, node->item->name) < 0) {
-                printf("\nInsert to sx");
                 node->left = insert(node->left, item, type);
             }
             else if (strcmp(item->name, node->item->name) > 0) {
-                printf("\nInsert to dx");
                 node->right = insert(node->right, item, type);
-            } else {
-                printf("\nNIENTE");
             }
             break;
 
         case TYPE_QTY:
-            printf("\nInsert Qty:\n");
-            printf("\nItem->qty: %d", item->quantity);
-            printf("\nNode->item->qty:%d", node->item->quantity);
-            if (item->quantity < node->item->quantity) {
-                printf("\nInsert to sx");
+            if (item->quantity <= node->item->quantity) {
                 node->left = insert(node->left, item, type);
             }
             else if (item->quantity > node->item->quantity) {
-                printf("\nInsert to dx");
                 node->right = insert(node->right, item, type);
-            } else {
-                printf("\nNIENTE");
             }
             break;
 
         case TYPE_PRICE:
-            printf("\nInsert price:\n");
-            printf("\nItem->price: %.2f", item->price);
-            printf("\nNode->item->price:%.2f", node->item->price);
-            if (item->price < node->item->price) {
-                printf("\nInsert to sx");
+            if (item->price <= node->item->price) {
                 node->left = insert(node->left, item, type);
             }
             else if (item->price > node->item->price) {
-                printf("\nInsert to dx");
                 node->right = insert(node->right, item, type);
-            } else {
-                printf("\nNIENTE");
             }
             break;
         default:
@@ -430,28 +431,21 @@ struct node* min_value_node(struct node *node)
    and returns the new root */
 struct node* delete(struct node *root, struct article *item, int type)
 {
-    printf("\n\n\nDELETE function");
-    // base case
     if (root == NULL) {
-        printf("\nRoot is null");
         return root;
     }
 
     switch (type) {
     case TYPE_ID:
-        printf("\n\n\nDelete by id\n");
-        print_article(item);
         // If the key to be deleted is smaller than the root's key,
         // then it lies in left subtree
         if (strcmp(item->id, root->item->id) < 0) {
-            printf("\nChiamo delete a sx");
             root->left = delete(root->left, item, type);
         }
 
         // If the key to be deleted is greater than the root's key,
         // then it lies in right subtree
         else if (strcmp(item->id, root->item->id) > 0) {
-            printf("\nChiamo delete a dx");
             root->right = delete(root->right, item, type);
         }
 
@@ -462,51 +456,38 @@ struct node* delete(struct node *root, struct article *item, int type)
             // node with only one child or no child
             if (root->left == NULL)
             {
-                printf("\nRoot->left == NULL, elimino NODO");
                 struct node *temp = root->right;
                 free(root);
                 return temp;
             }
             else if (root->right == NULL)
             {
-                printf("\nRoot->right == NULL, elimino NODO");
                 struct node *temp = root->left;
                 free(root);
                 return temp;
             }
-
-            printf("\n2 figli, vedo cosa fare");
-            printf("\nPrendo figlio piu piccolo a dx\n");
 
             // node with two children: Get the inorder successor (smallest
             // in the right subtree)
             struct node* temp = min_value_node(root->right);
 
             // Copy the inorder successor's content to this node
-            printf("\nCopio l'elemento appena trovato su root->item\n");
             root->item = temp->item;
-            print_article(root->item);
-
-            printf("\nElimino partendo da root->right, l'elemento qui sopra\n");
 
             // Delete the inorder successor
             root->right = delete(root->right, temp->item, type);
         }
         break;
     case TYPE_NAME:
-        printf("\n\n\nDelete by name\n");
-        print_article(item);
         // If the key to be deleted is smaller than the root's key,
         // then it lies in left subtree
         if (strcmp(item->name, root->item->name) < 0) {
-            printf("\nChiamo delete a sx");
             root->left = delete(root->left, item, type);
         }
 
         // If the key to be deleted is greater than the root's key,
         // then it lies in right subtree
         else if (strcmp(item->name, root->item->name) > 0) {
-            printf("\nChiamo delete a dx");
             root->right = delete(root->right, item, type);
         }
 
@@ -517,49 +498,37 @@ struct node* delete(struct node *root, struct article *item, int type)
             // node with only one child or no child
             if (root->left == NULL)
             {
-                printf("\nRoot->left == NULL, elimino NODO");
                 struct node *temp = root->right;
                 free(root);
                 return temp;
             }
             else if (root->right == NULL)
             {
-                printf("\nRoot->right == NULL, elimino NODO");
                 struct node *temp = root->left;
                 free(root);
                 return temp;
             }
-
-            printf("\n2 figli, vedo cosa fare");
-            printf("\nPrendo figlio piu piccolo a dx\n");
             // node with two children: Get the inorder successor (smallest
             // in the right subtree)
             struct node* temp = min_value_node(root->right);
 
             // Copy the inorder successor's content to this node
-            printf("\nCopio l'elemento appena trovato su root->item\n");
             root->item = temp->item;
-            print_article(root->item);
 
-            printf("\nElimino partendo da root->right, l'elemento qui sopra\n");
             // Delete the inorder successor
             root->right = delete(root->right, temp->item, type);
         }
         break;
     case TYPE_PRICE:
-        printf("\n\n\nDelete by price\n");
-        print_article(item);
         // If the key to be deleted is smaller than the root's key,
         // then it lies in left subtree
         if (item->price < root->item->price) {
-            printf("\nChiamo delete a sx");
             root->left = delete(root->left, item, type);
         }
 
         // If the key to be deleted is greater than the root's key,
         // then it lies in right subtree
         else if (item->price > root->item->price) {
-            printf("\nChiamo delete a dx");
             root->right = delete(root->right, item, type);
         }
 
@@ -567,52 +536,45 @@ struct node* delete(struct node *root, struct article *item, int type)
         // to be deleted
         else
         {
-            // node with only one child or no child
-            if (root->left == NULL)
-            {
-                printf("\nRoot->left == NULL, elimino NODO");
-                struct node *temp = root->right;
-                free(root);
-                return temp;
+            if (item->id == root->item->id) { // ID check
+                // node with only one child or no child
+                if (root->left == NULL)
+                {
+                    struct node *temp = root->right;
+                    free(root);
+                    return temp;
+                }
+                else if (root->right == NULL)
+                {
+                    struct node *temp = root->left;
+                    free(root);
+                    return temp;
+                }
+
+                // node with two children: Get the inorder successor (smallest
+                // in the right subtree)
+                struct node* temp = min_value_node(root->right);
+
+                // Copy the inorder successor's content to this node
+                root->item = temp->item;
+
+                // Delete the inorder successor
+                root->right = delete(root->right, temp->item, type);
+            } else {
+                root->left = delete(root->left, item, type);
             }
-            else if (root->right == NULL)
-            {
-                printf("\nRoot->right == NULL, elimino NODO");
-                struct node *temp = root->left;
-                free(root);
-                return temp;
-            }
-
-            printf("\n2 figli, vedo cosa fare");
-            printf("\nPrendo figlio piu piccolo a dx\n");
-            // node with two children: Get the inorder successor (smallest
-            // in the right subtree)
-            struct node* temp = min_value_node(root->right);
-
-            // Copy the inorder successor's content to this node
-            printf("\nCopio l'elemento appena trovato su root->item\n");
-            root->item = temp->item;
-            print_article(root->item);
-
-            printf("\nElimino partendo da root->right, l'elemento qui sopra\n");
-            // Delete the inorder successor
-            root->right = delete(root->right, temp->item, type);
         }
         break;
     case TYPE_QTY:
-        printf("\n\n\nDelete by price\n");
-        print_article(item);
         // If the key to be deleted is smaller than the root's key,
         // then it lies in left subtree
         if (item->quantity < root->item->quantity) {
-            printf("\nChiamo delete a sx");
             root->left = delete(root->left, item, type);
         }
 
         // If the key to be deleted is greater than the root's key,
         // then it lies in right subtree
         else if (item->quantity > root->item->quantity) {
-            printf("\nChiamo delete a dx");
             root->right = delete(root->right, item, type);
         }
 
@@ -620,36 +582,33 @@ struct node* delete(struct node *root, struct article *item, int type)
         // to be deleted
         else
         {
-            // node with only one child or no child
-            if (root->left == NULL)
-            {
-                printf("\nRoot->left == NULL, elimino NODO");
-                struct node *temp = root->right;
-                free(root);
-                return temp;
+            if (item->id == root->item->id) { // ID check
+                // node with only one child or no child
+                if (root->left == NULL)
+                {
+                    struct node *temp = root->right;
+                    free(root);
+                    return temp;
+                }
+                else if (root->right == NULL)
+                {
+                    struct node *temp = root->left;
+                    free(root);
+                    return temp;
+                }
+
+                // node with two children: Get the inorder successor (smallest
+                // in the right subtree)
+                struct node* temp = min_value_node(root->right);
+
+                // Copy the inorder successor's content to this node
+                root->item = temp->item;
+
+                // Delete the inorder successor
+                root->right = delete(root->right, temp->item, type);
+            } else {
+                root->left = delete(root->left, item, type);
             }
-            else if (root->right == NULL)
-            {
-                printf("\nRoot->right == NULL, elimino NODO");
-                struct node *temp = root->left;
-                free(root);
-                return temp;
-            }
-
-            printf("\n2 figli, vedo cosa fare");
-            printf("\nPrendo figlio piu piccolo a dx\n");
-            // node with two children: Get the inorder successor (smallest
-            // in the right subtree)
-            struct node* temp = min_value_node(root->right);
-
-            // Copy the inorder successor's content to this node
-            printf("\nCopio l'elemento appena trovato su root->item\n");
-            root->item = temp->item;
-            print_article(root->item);
-
-            printf("\nElimino partendo da root->right, l'elemento qui sopra\n");
-            // Delete the inorder successor
-            root->right = delete(root->right, temp->item, type);
         }
         break;
     }
@@ -659,7 +618,7 @@ struct node* delete(struct node *root, struct article *item, int type)
 
 /* The function acquires the root node and the id of the searched element,
    then search a node that has the given id. It returns the node if the element exists, NULL otherwise */
-struct node* search(struct node* root, char *id)
+struct node* search_id(struct node* root, char *id)
 {
     struct node* result = NULL;
 
@@ -667,33 +626,91 @@ struct node* search(struct node* root, char *id)
         if (strcmp(root->item->id, id) == 0) { /* Item is in root */
             result = root;
         } else if (strcmp(root->item->id, id) < 0) { /* Item->id is greater than root's item->id */
-            result = search(root->right, id);
+            result = search_id(root->right, id);
         } else {   /* Item->id is smaller than root's item->id */
-            result = search(root->left, id);
+            result = search_id(root->left, id);
         }
     }
 
     return result;
 }
 
-void print_tree(struct node *root)
+/* The function acquires the root node and the id of the searched element,
+   then search a node that has the given id. It returns the node if the element exists, NULL otherwise */
+struct node* search_name(struct node* root, char *name)
+{
+    struct node* result = NULL;
+
+    if (root != NULL) {
+        if (strcmp(root->item->name, name) == 0) { /* Item is in root */
+            result = root;
+        } else if (strcmp(root->item->name, name) < 0) { /* Item->id is greater than root's item->id */
+            result = search_name(root->right, name);
+        } else {   /* Item->id is smaller than root's item->id */
+            result = search_name(root->left, name);
+        }
+    }
+
+    return result;
+}
+
+void print_tree(struct node *root, struct article *product_to_highlight, int col_to_highlight)
 {
     if (root != NULL)
     {
-        print_tree(root->left);
-        print_article(root->item);
-        print_tree(root->right);
+        print_tree(root->left, product_to_highlight, col_to_highlight);
+        if (product_to_highlight != NULL && strcmp(product_to_highlight->id, root->item->id) == 0) {
+            printf("%s", KGRN);
+            print_article(root->item, col_to_highlight);
+            printf("%s", KDEF);
+        } else {
+            print_article(root->item, col_to_highlight);
+        }
+        print_tree(root->right, product_to_highlight, col_to_highlight);
     }
 }
 
 /* General functions */
-
-void print_data(struct node *root)
+void print_data(struct node *root, struct article *product_to_highlight, int col_to_highlight)
 {
     printf("\n--------------------------------------------------------------\n");
-    printf("%-15s%-20s%-15s%-15s\n", "ID", "Name", "Quantity", "Price");
+    switch (col_to_highlight) {
+    case TYPE_ID:
+        printf("%s%-15s%s", KYEL, "ID", KDEF);
+        printf("%-20s", "Name");
+        printf("%-15s", "Quantity");
+        printf("%-15s", "Price");
+        break;
+    case TYPE_NAME:
+        printf("%-15s", "ID");
+        printf("%s%-20s%s", KYEL, "Name", KDEF);
+        printf("%-15s", "Quantity");
+        printf("%-15s", "Price");
+        break;
+    case TYPE_QTY:
+        printf("%-15s", "ID");
+        printf("%-20s", "Name");
+        printf("%s%-15s%s", KYEL, "Quantity", KDEF);
+        printf("%-15s", "Price");
+        break;
+    case TYPE_PRICE:
+        printf("%-15s", "ID");
+        printf("%-20s", "Name");
+        printf("%-15s", "Quantity");
+        printf("%s%-15s%s", KYEL, "Price", KDEF);
+        break;
+    default:
+        printf("%-15s", "ID");
+        printf("%-20s", "Name");
+        printf("%-15s", "Quantity");
+        printf("%-15s", "Price");
+        break;
+    }
+
+    printf("\n");
+    // printf("%-15s%-20s%-15s%-15s\n", "ID", "Name", "Quantity", "Price");
     printf("--------------------------------------------------------------\n");
-    print_tree(root);
+    print_tree(root, product_to_highlight, col_to_highlight);
     printf("--------------------------------------------------------------\n");
 }
 
