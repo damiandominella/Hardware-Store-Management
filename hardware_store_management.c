@@ -24,22 +24,30 @@
 
 /* Definition of constants */
 #define INPUT_FILE "input.txt"
-#define TYPE_ID 0
+
+/* Binary tree types */
+#define TYPE_NONE -1 /* Just for default color columns */
+#define TYPE_ID 0 
 #define TYPE_NAME 1
 #define TYPE_QTY 2
 #define TYPE_PRICE 3
-#define KYEL   "\x1B[33m" /* yellow color */
-#define KGRN  "\x1B[32m" /* green color */
-#define KDEF  "\x1B[0m" /* default color */
+
+/* Colors */
+#define KYEL   "\x1B[33m" /* yellow */
+#define KGRN  "\x1B[32m" /* green */
+#define KDEF  "\x1B[0m" /* default (white) */
 
 /* Structures declaration */
+
+/* Article structure */
 struct article {
-    char *id;
+    char *id; 
     char *name;
     int quantity;
     float price;
 };
 
+/* Node of binary tree structure */
 struct node {
     struct article *item;
     struct node *left, *right;
@@ -114,6 +122,7 @@ int main()
                 printf("2) Quantity\n");
                 printf("3) Price\n\n");
 
+                /* Acquiring sort key and validating it */
                 int sort_key;
                 printf("Sort key: ");
                 do {
@@ -123,7 +132,7 @@ int main()
                     }
                 } while (sort_key < 0 || sort_key > 3);
 
-                /* Display data of the correct tree based on user's selected sort key */
+                /* Display data from the correct tree based on user's selected sort key */
                 printf("\nData sorted by: ");
                 switch (sort_key) {
                 case TYPE_ID:
@@ -161,8 +170,9 @@ int main()
             float price;
             int quantity;
 
+            /* Acquision of the new record to insert in binary tree, ID and name fields are unique values
+               so they can't be duplicate, that's the reason of the following checks */
             printf("ID: ");
-            /* Duplicate ID check */
             int id_exists = 1;
             while (id_exists) {
                 scanf("%s", id);
@@ -186,6 +196,7 @@ int main()
                     name_exists = 0;
                 }
             }
+
             printf("Quantity: ");
             quantity = get_valid_int("Quantity");
             printf("Price: ");
@@ -200,16 +211,16 @@ int main()
             root_price = insert(root_price, product, TYPE_PRICE);
 
             printf("\nRecord inserted successfully");
-            print_data(root_id, product, -1);
+            print_data(root_id, product, TYPE_NONE);
             break;
 
         case 3:
             printf("Delete item");
-            print_data(root_id, NULL, -1);
+            print_data(root_id, NULL, TYPE_NONE); /* Displaying data to ease the user to select the ID */
 
+            /* Checking if the selected ID exists */
             char id_to_delete[64];
             printf("\nID to delete: ");
-            /* ID check */
             int id_not_exists = 1;
             while (id_not_exists) {
                 scanf("%s", id_to_delete);
@@ -221,6 +232,7 @@ int main()
                 }
             }
 
+            /* Searching the node to delete by the selected ID and deleting that node from every binary tree */
             struct node* node_to_delete = search_id(root_id, id_to_delete);
 
             root_name = delete(root_name, node_to_delete->item, TYPE_NAME);
@@ -239,6 +251,7 @@ int main()
 
     } while (choice != 0);
 
+    /* Memory de-allocation */
     free(root_id);
     free(root_name);
     free(root_qty);
