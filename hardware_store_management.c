@@ -244,7 +244,7 @@ int main()
             break;
 
         default:
-            printf("\nOption: %d) does not exist\n", choice);
+            if (choice != 0) printf("\nOption: %d) does not exist\n", choice);
             break;
 
         }
@@ -549,7 +549,7 @@ struct node* delete(struct node *root, struct article *item, int type)
         // to be deleted
         else
         {
-            if (item->id == root->item->id) { // ID check
+            if (strcmp(item->id, root->item->id) == 0) { // ID check
                 // node with only one child or no child
                 if (root->left == NULL)
                 {
@@ -595,7 +595,7 @@ struct node* delete(struct node *root, struct article *item, int type)
         // to be deleted
         else
         {
-            if (item->id == root->item->id) { // ID check
+            if (strcmp(item->id, root->item->id) == 0) { // ID check 
                 // node with only one child or no child
                 if (root->left == NULL)
                 {
