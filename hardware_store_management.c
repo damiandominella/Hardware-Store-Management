@@ -26,22 +26,16 @@
 #define INPUT_FILE "input.txt"
 
 /* Binary tree types */
-#define TYPE_NONE -1 /* Just for default color columns */
-#define TYPE_ID 0 
+#define TYPE_ID 0
 #define TYPE_NAME 1
 #define TYPE_QTY 2
 #define TYPE_PRICE 3
-
-/* Colors */
-#define KYEL   "\x1B[33m" /* yellow */
-#define KGRN  "\x1B[32m" /* green */
-#define KDEF  "\x1B[0m" /* default (white) */
 
 /* Structures declaration */
 
 /* Article structure */
 struct article {
-    char *id; 
+    char *id;
     char *name;
     int quantity;
     float price;
@@ -57,7 +51,7 @@ struct node {
 
 /* Article functions */
 struct article* new_article(char *id, char *name, float price, int quantity);
-void print_article(struct article *item, int col_to_highlight);
+void print_article(struct article *item);
 
 /* Binary tree functions */
 struct node* load_data(const char file[], int type);
@@ -67,10 +61,10 @@ struct node* min_value_node(struct node* node);
 struct node* delete(struct node *root, struct article *item, int type);
 struct node* search_id(struct node* root, char *id);
 struct node* search_name(struct node* root, char *id);
-void print_tree(struct node *root, struct article *product_to_highlight, int col_to_highlight);
+void print_tree(struct node *root);
 
 /* General functions */
-void print_data(struct node *root, struct article *product_to_highlight, int col_to_highlight);
+void print_data(struct node *root);
 void clear_buffer();
 int get_valid_int(char *field_name);
 float get_valid_float(char *field_name);
@@ -133,26 +127,26 @@ int main()
                 } while (sort_key < 0 || sort_key > 3);
 
                 /* Display data from the correct tree based on user's selected sort key */
-                printf("\nData sorted by: ");
+                printf("\nData sorted by field: ");
                 switch (sort_key) {
                 case TYPE_ID:
-                    printf("%sID%s", KYEL, KDEF);
-                    print_data(root_id, NULL, TYPE_ID);
+                    printf("ID");
+                    print_data(root_id);
                     break;
 
                 case TYPE_NAME:
-                    printf("%sName%s", KYEL, KDEF);
-                    print_data(root_name, NULL, TYPE_NAME);
+                    printf("Name");
+                    print_data(root_name);
                     break;
 
                 case TYPE_QTY:
-                    printf("%sQuantity%s", KYEL, KDEF);
-                    print_data(root_qty, NULL, TYPE_QTY);
+                    printf("Quantity");
+                    print_data(root_qty);
                     break;
 
                 case TYPE_PRICE:
-                    printf("%sPrice%s", KYEL, KDEF);
-                    print_data(root_price, NULL, TYPE_PRICE);
+                    printf("Price");
+                    print_data(root_price);
                     break;
 
                 default:
@@ -203,20 +197,25 @@ int main()
             price = get_valid_float("Price");
 
             /* Creating new article and inserting it every binary tree */
-            struct article *product = new_article(id, name, price, quantity);
+            struct article *item = new_article(id, name, price, quantity);
 
-            root_id = insert(root_id, product, TYPE_ID);
-            root_name = insert(root_name, product, TYPE_NAME);
-            root_qty = insert(root_qty, product, TYPE_QTY);
-            root_price = insert(root_price, product, TYPE_PRICE);
+            if (item != NULL) {
+                root_id = insert(root_id, item, TYPE_ID);
+                root_name = insert(root_name, item, TYPE_NAME);
+                root_qty = insert(root_qty, item, TYPE_QTY);
+                root_price = insert(root_price, item, TYPE_PRICE);
 
-            printf("\nRecord inserted successfully");
-            print_data(root_id, product, TYPE_NONE);
+                printf("\nRecord inserted successfully");
+                print_data(root_id);
+            } else {
+                choice = 0; /* Memory allocation error, exit the program setting the choice = 0 */
+            }
+
             break;
 
         case 3:
             printf("Delete item");
-            print_data(root_id, NULL, TYPE_NONE); /* Displaying data to ease the user to select the ID */
+            print_data(root_id); /* Displaying data to ease the user to select the ID */
 
             /* Checking if the selected ID exists */
             char id_to_delete[64];
@@ -267,16 +266,20 @@ int main()
 /* The function acquires the data (id, name, price, quantity) and creates a new article, returning it.*/
 struct article* new_article(char *id, char *name, float price, int quantity)
 {
+    /* Allocating memory for the new item */
     struct article *item = (struct article *)malloc(sizeof(struct article));
 
+    /* Checking for memory allocation errors */
     if (item != NULL) {
         item->id = malloc(strlen(id) + 1);
         if (item->id == NULL) {
+            item = NULL;
             printf("\n[ERROR] Memory allocation failed, try to re-run the program");
         } else {
             strcpy(item->id, id);
             item->name = malloc(strlen(name) + 1);
             if (item->name == NULL) {
+                item = NULL;
                 printf("\n[ERROR] Memory allocation failed, try to re-run the program");
             } else {
                 strcpy(item->name, name);
@@ -292,45 +295,18 @@ struct article* new_article(char *id, char *name, float price, int quantity)
 }
 
 /* The function acquires the item and print its data in a formatted way */
-void print_article(struct article *item, int col_to_highlight)
+void print_article(struct article *item)
 {
-    switch (col_to_highlight) {
-    case TYPE_ID:
-        printf("%s%-15s%s", KYEL, item->id, KDEF);
-        printf("%-20s", item->name);
-        printf("%-15d", item->quantity);
-        printf("%-15.2f", item->price);
-        break;
-    case TYPE_NAME:
-        printf("%-15s", item->id);
-        printf("%s%-20s%s", KYEL, item->name, KDEF);
-        printf("%-15d", item->quantity);
-        printf("%-15.2f", item->price);
-        break;
-    case TYPE_QTY:
-        printf("%-15s", item->id);
-        printf("%-20s", item->name);
-        printf("%s%-15d%s",  KYEL, item->quantity, KDEF);
-        printf("%-15.2f", item->price);
-        break;
-    case TYPE_PRICE:
-        printf("%-15s", item->id);
-        printf("%-20s", item->name);
-        printf("%-15d", item->quantity);
-        printf("%s%-15.2f%s",  KYEL, item->price, KDEF);
-        break;
-    default:
-        printf("%-15s", item->id);
-        printf("%-20s", item->name);
-        printf("%-15d", item->quantity);
-        printf("%-15.2f", item->price);
-        break;
-    }
+    printf("%-15s", item->id);
+    printf("%-20s", item->name);
+    printf("%-15d", item->quantity);
+    printf("%-15.2f", item->price);
     printf("\n");
 }
 
 /* Binary tree functions */
 
+/* The function acquires the input file where the data is stored and the binary tree type to insert that data */
 struct node* load_data(const char file[], int type)
 {
     /* Initializing tree */
@@ -341,14 +317,20 @@ struct node* load_data(const char file[], int type)
 
     /* Opening file error */
     if (f != NULL) {
-        /* Loading data from file */
         char id[64], name[64];
         float price;
         int quantity;
 
+        /* Loading data from file */
         while (fscanf(f, "%s %s %f %d", name, id, &price, &quantity) != EOF) {
-            struct article *product = new_article(id, name, price, quantity);
-            root = insert(root, product, type);
+            /* Creating new article and inserting it in binary tree */
+            struct article *item = new_article(id, name, price, quantity);
+            if (item != NULL) {
+                root = insert(root, item, type);
+            } else {
+                root = NULL;
+                break; /* Memory allocation failed */
+            }
         }
         fclose(f);
     }
@@ -356,15 +338,15 @@ struct node* load_data(const char file[], int type)
     return root;
 }
 
-/* The function acquires the item and allocates a new node with the given data and NULL left and
-   right pointers. Then, the node is returned. */
+/* The function acquires the item and allocates a new node with the given data.
+It also initialize the node left and right pointers as NULL. Then, the node is returned. */
 struct node* new_node(struct article *item)
 {
     struct node *temp = (struct node *)malloc(sizeof(struct node)); /* Allocate memory for new node */
 
     if (temp != NULL) {
-        temp->item = item; /* Allocate memory for new node */
-        temp->left = temp->right = NULL; /* Initialize left and right children as NULL */
+        temp->item = item; /* Storing the item in the node */
+        temp->left = temp->right = NULL; /* Initialize left and right child as NULL */
     } else {
         printf("\n[ERROR] Memory allocation failed, try to re-run the program");
     }
@@ -376,13 +358,20 @@ struct node* new_node(struct article *item)
    Then it insert the item into the correct node, and return that node. */
 struct node* insert(struct node *node, struct article *item, int type)
 {
-    /* If the tree is empty, return a new node */
+    /* If the node is NULL, it is the node where to insert the item */
     if (node == NULL) {
         node = new_node(item);
     } else {
         /* If the tree is not empty, recur down it to find the correct node to insert the given item.
            For data comparison between strings, strcmp() is used to get the smaller value */
+
+        /* The switch statement is used to compare the correct item value */
         switch (type) {
+        /* The logic behind the insert function is quite simple:
+        if the value to insert is smaller than the current node value then use recursion to insert the value in his left child.
+        Otherwise insert it in his right child */
+
+        /* ID and Name are unique values, so < and > are enough for values comparyson, because duplicate values are not allowed. */
         case TYPE_ID:
             if (strcmp(item->id, node->item->id) < 0) {
                 node->left = insert(node->left, item, type);
@@ -401,6 +390,7 @@ struct node* insert(struct node *node, struct article *item, int type)
             }
             break;
 
+        /* Quantity and Price fields allow duplicate values, so <= and > are required for values comparyson. */
         case TYPE_QTY:
             if (item->quantity <= node->item->quantity) {
                 node->left = insert(node->left, item, type);
@@ -426,47 +416,46 @@ struct node* insert(struct node *node, struct article *item, int type)
     return node;
 }
 
-/* Given a non-empty binary search tree, return the node with minimum
-   key value found in that tree. Note that the entire tree does not
-   need to be searched. */
+/* The function acquires a node and return his smallest child */
 struct node* min_value_node(struct node *node)
 {
-    struct node* current = node;
+    struct node* temp = node;
 
-    /* loop down to find the leftmost leaf */
-    while (current->left != NULL)
-        current = current->left;
+    /* Loop down the node until the leftmost child is found*/
+    while (temp->left != NULL) {
+        temp = temp->left;
+    }
 
-    return current;
+    return temp;
 }
 
-/* Given a binary search tree and a key, this function deletes the key
-   and returns the new root */
+/* The function acquires a node, an item and the type of data to delete.
+   Then it delete the item from the correct tree, and return that tree. */
 struct node* delete(struct node *root, struct article *item, int type)
 {
+    /* Simplest case, if root is null, do nothing and return it */
     if (root == NULL) {
         return root;
     }
 
+    /* The switch statement is used to compare the correct item value */
     switch (type) {
+
+    /* The logic behind the delete is the same for every field, with a little difference for Price and Quantity.*/
+
     case TYPE_ID:
-        // If the key to be deleted is smaller than the root's key,
-        // then it lies in left subtree
+        /* If the key to be deleted is smaller than the root's key, then it lies in left subtree */
         if (strcmp(item->id, root->item->id) < 0) {
             root->left = delete(root->left, item, type);
         }
-
-        // If the key to be deleted is greater than the root's key,
-        // then it lies in right subtree
+        /* If the key to be deleted is greater than the root's key, then it lies in right subtree */
         else if (strcmp(item->id, root->item->id) > 0) {
             root->right = delete(root->right, item, type);
         }
-
-        // if key is same as root's key, then This is the node
-        // to be deleted
+        /* If key is same as root's key, then this is the node to be deleted */
         else
         {
-            // node with only one child or no child
+            /* Node with only one child or no child */
             if (root->left == NULL)
             {
                 struct node *temp = root->right;
@@ -480,146 +469,88 @@ struct node* delete(struct node *root, struct article *item, int type)
                 return temp;
             }
 
-            // node with two children: Get the inorder successor (smallest
-            // in the right subtree)
+            /* Node with two children: get the smallest child the right subtree */
             struct node* temp = min_value_node(root->right);
 
-            // Copy the inorder successor's content to this node
+            /* Copy the found node item to this node */
             root->item = temp->item;
 
-            // Delete the inorder successor
+            /* Deleting the found node */
             root->right = delete(root->right, temp->item, type);
         }
         break;
     case TYPE_NAME:
-        // If the key to be deleted is smaller than the root's key,
-        // then it lies in left subtree
         if (strcmp(item->name, root->item->name) < 0) {
             root->left = delete(root->left, item, type);
-        }
-
-        // If the key to be deleted is greater than the root's key,
-        // then it lies in right subtree
-        else if (strcmp(item->name, root->item->name) > 0) {
+        } else if (strcmp(item->name, root->item->name) > 0) {
             root->right = delete(root->right, item, type);
-        }
-
-        // if key is same as root's key, then This is the node
-        // to be deleted
-        else
-        {
-            // node with only one child or no child
-            if (root->left == NULL)
-            {
+        } else {
+            if (root->left == NULL) {
                 struct node *temp = root->right;
                 free(root);
                 return temp;
-            }
-            else if (root->right == NULL)
-            {
+            } else if (root->right == NULL) {
                 struct node *temp = root->left;
                 free(root);
                 return temp;
             }
-            // node with two children: Get the inorder successor (smallest
-            // in the right subtree)
+
             struct node* temp = min_value_node(root->right);
-
-            // Copy the inorder successor's content to this node
             root->item = temp->item;
-
-            // Delete the inorder successor
             root->right = delete(root->right, temp->item, type);
         }
         break;
     case TYPE_PRICE:
-        // If the key to be deleted is smaller than the root's key,
-        // then it lies in left subtree
         if (item->price < root->item->price) {
             root->left = delete(root->left, item, type);
-        }
-
-        // If the key to be deleted is greater than the root's key,
-        // then it lies in right subtree
-        else if (item->price > root->item->price) {
+        } else if (item->price > root->item->price) {
             root->right = delete(root->right, item, type);
-        }
-
-        // if key is same as root's key, then This is the node
-        // to be deleted
-        else
-        {
-            if (strcmp(item->id, root->item->id) == 0) { // ID check
-                // node with only one child or no child
-                if (root->left == NULL)
-                {
+        } else {
+            /* Since price field allows duplicate values, an ID comparyson must be done to delete the right item */
+            if (strcmp(item->id, root->item->id) == 0) {
+                if (root->left == NULL) {
                     struct node *temp = root->right;
                     free(root);
                     return temp;
-                }
-                else if (root->right == NULL)
-                {
+                } else if (root->right == NULL) {
                     struct node *temp = root->left;
                     free(root);
                     return temp;
                 }
 
-                // node with two children: Get the inorder successor (smallest
-                // in the right subtree)
                 struct node* temp = min_value_node(root->right);
-
-                // Copy the inorder successor's content to this node
                 root->item = temp->item;
-
-                // Delete the inorder successor
                 root->right = delete(root->right, temp->item, type);
             } else {
+                /* If ID is not the same, then delete the left child of that node (since insert on left child is conditioned by <= ) */
                 root->left = delete(root->left, item, type);
             }
         }
         break;
     case TYPE_QTY:
-        // If the key to be deleted is smaller than the root's key,
-        // then it lies in left subtree
         if (item->quantity < root->item->quantity) {
             root->left = delete(root->left, item, type);
-        }
-
-        // If the key to be deleted is greater than the root's key,
-        // then it lies in right subtree
-        else if (item->quantity > root->item->quantity) {
+        } else if (item->quantity > root->item->quantity) {
             root->right = delete(root->right, item, type);
-        }
-
-        // if key is same as root's key, then This is the node
-        // to be deleted
-        else
-        {
-            if (strcmp(item->id, root->item->id) == 0) { // ID check 
-                // node with only one child or no child
+        } else {
+            /* Since quantity field allows duplicate values, an ID comparyson must be done to delete the right item */
+            if (strcmp(item->id, root->item->id) == 0) {
                 if (root->left == NULL)
                 {
                     struct node *temp = root->right;
                     free(root);
                     return temp;
-                }
-                else if (root->right == NULL)
-                {
+                } else if (root->right == NULL) {
                     struct node *temp = root->left;
                     free(root);
                     return temp;
                 }
 
-                // node with two children: Get the inorder successor (smallest
-                // in the right subtree)
                 struct node* temp = min_value_node(root->right);
-
-                // Copy the inorder successor's content to this node
                 root->item = temp->item;
-
-                // Delete the inorder successor
                 root->right = delete(root->right, temp->item, type);
             } else {
+                /* If ID is not the same, then delete the left child of that node (since insert on left child is conditioned by <= ) */
                 root->left = delete(root->left, item, type);
             }
         }
@@ -648,8 +579,8 @@ struct node* search_id(struct node* root, char *id)
     return result;
 }
 
-/* The function acquires the root node and the id of the searched element,
-   then search a node that has the given id. It returns the node if the element exists, NULL otherwise */
+/* The function acquires the root and the name of the searched element,
+   then search a node that has the given name. It returns the node if the element exists, NULL otherwise */
 struct node* search_name(struct node* root, char *name)
 {
     struct node* result = NULL;
@@ -667,66 +598,33 @@ struct node* search_name(struct node* root, char *name)
     return result;
 }
 
-void print_tree(struct node *root, struct article *product_to_highlight, int col_to_highlight)
+/* The function acquires the root and print its data in order */
+void print_tree(struct node *root)
 {
     if (root != NULL)
     {
-        print_tree(root->left, product_to_highlight, col_to_highlight);
-        if (product_to_highlight != NULL && strcmp(product_to_highlight->id, root->item->id) == 0) {
-            printf("%s", KGRN);
-            print_article(root->item, col_to_highlight);
-            printf("%s", KDEF);
-        } else {
-            print_article(root->item, col_to_highlight);
-        }
-        print_tree(root->right, product_to_highlight, col_to_highlight);
+        /* Use recursion to elaborate the left child */
+        print_tree(root->left);
+        /* Elaborate node item */
+        print_article(root->item);
+        /* Use recursion to elaborate the right child */
+        print_tree(root->right);
     }
 }
 
 /* General functions */
-void print_data(struct node *root, struct article *product_to_highlight, int col_to_highlight)
+
+/* The function acquires the root and print its data in a formatted way */
+void print_data(struct node *root)
 {
     printf("\n--------------------------------------------------------------\n");
-    switch (col_to_highlight) {
-    case TYPE_ID:
-        printf("%s%-15s%s", KYEL, "ID", KDEF);
-        printf("%-20s", "Name");
-        printf("%-15s", "Quantity");
-        printf("%-15s", "Price");
-        break;
-    case TYPE_NAME:
-        printf("%-15s", "ID");
-        printf("%s%-20s%s", KYEL, "Name", KDEF);
-        printf("%-15s", "Quantity");
-        printf("%-15s", "Price");
-        break;
-    case TYPE_QTY:
-        printf("%-15s", "ID");
-        printf("%-20s", "Name");
-        printf("%s%-15s%s", KYEL, "Quantity", KDEF);
-        printf("%-15s", "Price");
-        break;
-    case TYPE_PRICE:
-        printf("%-15s", "ID");
-        printf("%-20s", "Name");
-        printf("%-15s", "Quantity");
-        printf("%s%-15s%s", KYEL, "Price", KDEF);
-        break;
-    default:
-        printf("%-15s", "ID");
-        printf("%-20s", "Name");
-        printf("%-15s", "Quantity");
-        printf("%-15s", "Price");
-        break;
-    }
-
-    printf("\n");
-    // printf("%-15s%-20s%-15s%-15s\n", "ID", "Name", "Quantity", "Price");
+    printf("%-15s%-20s%-15s%-15s\n", "ID", "Name", "Quantity", "Price");
     printf("--------------------------------------------------------------\n");
-    print_tree(root, product_to_highlight, col_to_highlight);
+    print_tree(root);
     printf("--------------------------------------------------------------\n");
 }
 
+/* Clear buffer function to avoid scanf errors */
 void clear_buffer()
 {
     char c;
@@ -737,12 +635,14 @@ int get_valid_int(char *field_name)
 {
     int is_valid = 0;
     int value;
+    char term;
     while (!is_valid) {
-        if (scanf("%d", &value) == 1) {
-            is_valid = 1;
-        } else {
+        if (scanf("%d%c", &value, &term) != 2 || term != '\n') {
             clear_buffer();
             printf("%s must be of type integer, try again: ", field_name);
+        }
+        else {
+            is_valid = 1;
         }
     }
 
