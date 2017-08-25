@@ -302,11 +302,7 @@ struct article* new_article(char *id, char *name, float price, int quantity)
 /* The function acquires the item and print its data in a formatted way */
 void print_article(struct article *item)
 {
-    printf("%-15s", item->id);
-    printf("%-20s", item->name);
-    printf("%-15d", item->quantity);
-    printf("%-15.2f", item->price);
-    printf("\n");
+    printf("%-15s%-20s%-15d%-15.2f\n", item->id, item->name, item->quantity, item->price);
 }
 
 /* Binary tree functions */
