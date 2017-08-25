@@ -31,6 +31,8 @@
 #define TYPE_QTY 2
 #define TYPE_PRICE 3
 
+#define ID_LENGTH 4
+
 /* Structures declaration */
 
 /* Article structure */
@@ -173,6 +175,9 @@ int main()
                 if (search_id(root_id, id) != NULL) {
                     clear_buffer();
                     printf("A record with ID: %s already exists, try again: ", id);
+                } else if (strlen(id) > ID_LENGTH || strlen(id) < ID_LENGTH) {
+                    clear_buffer();
+                    printf("ID length must be of %d characters: ", ID_LENGTH);
                 } else {
                     id_exists = 0;
                 }
@@ -653,12 +658,13 @@ float get_valid_float(char *field_name)
 {
     int is_valid = 0;
     float value;
+    char term;
     while (!is_valid) {
-        if (scanf("%f", &value) == 1) {
-            is_valid = 1;
-        } else {
+        if (scanf("%f%c", &value, &term) != 2 || term != '\n') {
             clear_buffer();
             printf("%s must be of type float, try again: ", field_name);
+        } else {
+            is_valid = 1;
         }
     }
 
