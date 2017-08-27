@@ -170,7 +170,7 @@ int main()
                so they can't be duplicate, that's the reason of the following checks */
             printf("ID: ");
             int id_exists = 1;
-            while (id_exists) {
+            do {
                 scanf("%s", id);
                 if (search_id(root_id, id) != NULL) {
                     clear_buffer();
@@ -181,12 +181,12 @@ int main()
                 } else {
                     id_exists = 0;
                 }
-            }
+            } while (id_exists);
 
             printf("Name: ");
             /* Duplicate name check */
             int name_exists = 1;
-            while (name_exists) {
+            do {
                 scanf("%s", name);
                 if (search_name(root_name, name) != NULL) {
                     clear_buffer();
@@ -194,7 +194,7 @@ int main()
                 } else {
                     name_exists = 0;
                 }
-            }
+            } while (name_exists);
 
             printf("Quantity: ");
             quantity = get_valid_int("Quantity");
@@ -434,81 +434,53 @@ struct node* min_value_node(struct node *node)
    Then it delete the item from the correct tree, and return that tree. */
 struct node* delete(struct node *root, struct article *item, int type)
 {
-    /* Simplest case, if root is null, do nothing and return it */
-    if (root == NULL) {
-        return root;
-    }
+    if (root != NULL) {
+        /* The switch statement is used to compare the correct item value */
+        switch (type) {
 
-    /* The switch statement is used to compare the correct item value */
-    switch (type) {
-
-    /* The logic behind the delete is the same for every field, with a little difference for Price and Quantity.*/
-
-    case TYPE_ID:
-        /* If the key to be deleted is smaller than the root's key, then it lies in left subtree */
-        if (strcmp(item->id, root->item->id) < 0) {
-            root->left = delete(root->left, item, type);
-        }
-        /* If the key to be deleted is greater than the root's key, then it lies in right subtree */
-        else if (strcmp(item->id, root->item->id) > 0) {
-            root->right = delete(root->right, item, type);
-        }
-        /* If key is same as root's key, then this is the node to be deleted */
-        else
-        {
-            /* Node with only one child or no child */
-            if (root->left == NULL)
+        /* The logic behind the delete is the same for every field, with a little difference for Price and Quantity.*/
+        case TYPE_ID:
+            /* If the key to be deleted is smaller than the root's key, then it lies in left subtree */
+            if (strcmp(item->id, root->item->id) < 0) {
+                root->left = delete(root->left, item, type);
+            }
+            /* If the key to be deleted is greater than the root's key, then it lies in right subtree */
+            else if (strcmp(item->id, root->item->id) > 0) {
+                root->right = delete(root->right, item, type);
+            }
+            /* If key is same as root's key, then this is the node to be deleted */
+            else
             {
-                struct node *temp = root->right;
-                free(root);
-                return temp;
+                /* Node with only one child or no child */
+                if (root->left == NULL)
+                {
+                    struct node *temp = root->right;
+                    free(root);
+                    return temp;
+                }
+                else if (root->right == NULL)
+                {
+                    struct node *temp = root->left;
+                    free(root);
+                    return temp;
+                }
+
+                /* Node with two children: get the smallest child the right subtree */
+                struct node* temp = min_value_node(root->right);
+
+                /* Copy the found node item to this node */
+                root->item = temp->item;
+
+                /* Deleting the found node */
+                root->right = delete(root->right, temp->item, type);
             }
-            else if (root->right == NULL)
-            {
-                struct node *temp = root->left;
-                free(root);
-                return temp;
-            }
-
-            /* Node with two children: get the smallest child the right subtree */
-            struct node* temp = min_value_node(root->right);
-
-            /* Copy the found node item to this node */
-            root->item = temp->item;
-
-            /* Deleting the found node */
-            root->right = delete(root->right, temp->item, type);
-        }
-        break;
-    case TYPE_NAME:
-        if (strcmp(item->name, root->item->name) < 0) {
-            root->left = delete(root->left, item, type);
-        } else if (strcmp(item->name, root->item->name) > 0) {
-            root->right = delete(root->right, item, type);
-        } else {
-            if (root->left == NULL) {
-                struct node *temp = root->right;
-                free(root);
-                return temp;
-            } else if (root->right == NULL) {
-                struct node *temp = root->left;
-                free(root);
-                return temp;
-            }
-
-            struct node* temp = min_value_node(root->right);
-            root->item = temp->item;
-            root->right = delete(root->right, temp->item, type);
-        }
-        break;
-    case TYPE_PRICE:
-        if (item->price < root->item->price) {
-            root->left = delete(root->left, item, type);
-        } else if (item->price > root->item->price) {
-            root->right = delete(root->right, item, type);
-        } else {
-            /* Since price field allows duplicate values, an ID comparyson must be done to delete the right item */
-            if (strcmp(item->id, root->item->id) == 0) {
+            break;
+        case TYPE_NAME:
+            if (strcmp(item->name, root->item->name) < 0) {
+                root->left = delete(root->left, item, type);
+            } else if (strcmp(item->name, root->item->name) > 0) {
+                root->right = delete(root->right, item, type);
+            } else {
                 if (root->left == NULL) {
                     struct node *temp = root->right;
                     free(root);
@@ -522,40 +494,64 @@ struct node* delete(struct node *root, struct article *item, int type)
                 struct node* temp = min_value_node(root->right);
                 root->item = temp->item;
                 root->right = delete(root->right, temp->item, type);
-            } else {
-                /* If ID is not the same, then delete the left child of that node (since insert on left child is conditioned by <= ) */
-                root->left = delete(root->left, item, type);
             }
-        }
-        break;
-    case TYPE_QTY:
-        if (item->quantity < root->item->quantity) {
-            root->left = delete(root->left, item, type);
-        } else if (item->quantity > root->item->quantity) {
-            root->right = delete(root->right, item, type);
-        } else {
-            /* Since quantity field allows duplicate values, an ID comparyson must be done to delete the right item */
-            if (strcmp(item->id, root->item->id) == 0) {
-                if (root->left == NULL)
-                {
-                    struct node *temp = root->right;
-                    free(root);
-                    return temp;
-                } else if (root->right == NULL) {
-                    struct node *temp = root->left;
-                    free(root);
-                    return temp;
-                }
+            break;
+        case TYPE_PRICE:
+            if (item->price < root->item->price) {
+                root->left = delete(root->left, item, type);
+            } else if (item->price > root->item->price) {
+                root->right = delete(root->right, item, type);
+            } else {
+                /* Since price field allows duplicate values, an ID comparyson must be done to delete the right item */
+                if (strcmp(item->id, root->item->id) == 0) {
+                    if (root->left == NULL) {
+                        struct node *temp = root->right;
+                        free(root);
+                        return temp;
+                    } else if (root->right == NULL) {
+                        struct node *temp = root->left;
+                        free(root);
+                        return temp;
+                    }
 
-                struct node* temp = min_value_node(root->right);
-                root->item = temp->item;
-                root->right = delete(root->right, temp->item, type);
-            } else {
-                /* If ID is not the same, then delete the left child of that node (since insert on left child is conditioned by <= ) */
-                root->left = delete(root->left, item, type);
+                    struct node* temp = min_value_node(root->right);
+                    root->item = temp->item;
+                    root->right = delete(root->right, temp->item, type);
+                } else {
+                    /* If ID is not the same, then delete the left child of that node (since insert on left child is conditioned by <= ) */
+                    root->left = delete(root->left, item, type);
+                }
             }
+            break;
+        case TYPE_QTY:
+            if (item->quantity < root->item->quantity) {
+                root->left = delete(root->left, item, type);
+            } else if (item->quantity > root->item->quantity) {
+                root->right = delete(root->right, item, type);
+            } else {
+                /* Since quantity field allows duplicate values, an ID comparyson must be done to delete the right item */
+                if (strcmp(item->id, root->item->id) == 0) {
+                    if (root->left == NULL)
+                    {
+                        struct node *temp = root->right;
+                        free(root);
+                        return temp;
+                    } else if (root->right == NULL) {
+                        struct node *temp = root->left;
+                        free(root);
+                        return temp;
+                    }
+
+                    struct node* temp = min_value_node(root->right);
+                    root->item = temp->item;
+                    root->right = delete(root->right, temp->item, type);
+                } else {
+                    /* If ID is not the same, then delete the left child of that node (since insert on left child is conditioned by <= ) */
+                    root->left = delete(root->left, item, type);
+                }
+            }
+            break;
         }
-        break;
     }
 
     return root;
