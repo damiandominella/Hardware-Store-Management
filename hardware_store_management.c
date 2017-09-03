@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /* Definition of constants */
 #define INPUT_FILE "input.txt"
@@ -133,7 +134,14 @@ int main()
                 switch (sort_key) {
                 case TYPE_ID:
                     printf("ID");
+
+                    clock_t start_print = clock();
+
                     print_data(root_id);
+                    
+                    clock_t end_print = clock();
+                    double time_spent_print = (double)(end_print - start_print) / CLOCKS_PER_SEC;
+                    printf("\n\nTime taken: %f milliseconds", time_spent_print * 1000);
                     break;
 
                 case TYPE_NAME:
@@ -205,10 +213,16 @@ int main()
             struct article *item = new_article(id, name, price, quantity);
 
             if (item != NULL) {
+                clock_t start_insert = clock();
+
                 root_id = insert(root_id, item, TYPE_ID);
                 root_name = insert(root_name, item, TYPE_NAME);
                 root_qty = insert(root_qty, item, TYPE_QTY);
                 root_price = insert(root_price, item, TYPE_PRICE);
+
+                clock_t end_insert = clock();
+                double time_spent_insert = (double)(end_insert - start_insert) / CLOCKS_PER_SEC;
+                printf("\n\nTime taken: %f milliseconds", time_spent_insert * 1000);
 
                 printf("\nRecord inserted successfully");
                 print_data(root_id);
@@ -239,10 +253,16 @@ int main()
             /* Searching the node to delete by the selected ID and deleting that node from every binary tree */
             struct node* node_to_delete = search_id(root_id, id_to_delete);
 
+            clock_t start_delete = clock();
+
             root_name = delete(root_name, node_to_delete->item, TYPE_NAME);
             root_price = delete(root_price, node_to_delete->item, TYPE_PRICE);
             root_qty = delete(root_qty, node_to_delete->item, TYPE_QTY);
             root_id = delete(root_id, node_to_delete->item, TYPE_ID);
+
+            clock_t end_delete = clock();
+            double time_spent_delete = (double)(end_delete - start_delete) / CLOCKS_PER_SEC;
+            printf("\n\nTime taken: %f milliseconds", time_spent_delete * 1000);
 
             printf("\nRecord deleted successfully\n");
             break;
@@ -452,14 +472,11 @@ struct node* delete(struct node *root, struct article *item, int type)
             else
             {
                 /* Node with only one child or no child */
-                if (root->left == NULL)
-                {
+                if (root->left == NULL) {
                     struct node *temp = root->right;
                     free(root);
                     return temp;
-                }
-                else if (root->right == NULL)
-                {
+                } else if (root->right == NULL) {
                     struct node *temp = root->left;
                     free(root);
                     return temp;
