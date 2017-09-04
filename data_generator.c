@@ -33,5 +33,7 @@ int main() {
 		return 1;
 	}
 
+	printf("\n%d articles generated!\n\n", max);
+
 	return 0;
 }

@@ -141,7 +141,7 @@ int main()
                     
                     clock_t end_print = clock();
                     double time_spent_print = (double)(end_print - start_print) / CLOCKS_PER_SEC;
-                    printf("\n\nTime taken: %f milliseconds", time_spent_print * 1000);
+                    printf("\n\nTime taken: %f milliseconds\n\n", time_spent_print * 1000);
                     break;
 
                 case TYPE_NAME:
@@ -222,7 +222,7 @@ int main()
 
                 clock_t end_insert = clock();
                 double time_spent_insert = (double)(end_insert - start_insert) / CLOCKS_PER_SEC;
-                printf("\n\nTime taken: %f milliseconds", time_spent_insert * 1000);
+                printf("\n\nTime taken: %f milliseconds\n\n", time_spent_insert * 1000);
 
                 printf("\nRecord inserted successfully");
                 print_data(root_id);
@@ -262,7 +262,7 @@ int main()
 
             clock_t end_delete = clock();
             double time_spent_delete = (double)(end_delete - start_delete) / CLOCKS_PER_SEC;
-            printf("\n\nTime taken: %f milliseconds", time_spent_delete * 1000);
+            printf("\n\nTime taken: %f milliseconds\n\n", time_spent_delete * 1000);
 
             printf("\nRecord deleted successfully\n");
             break;

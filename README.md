@@ -23,6 +23,9 @@ Apart from theoretical analysis, an experimental study has to be done regarding 
 ### Steps to do to run program (on linux/unix systems):
 
 ```bash
-chmod +x compile.sh
-./compile.sh
+make
+
+./data_generator (only if you want to decide how many articles the program must process)
+
+./hardware_store_management
 ```
